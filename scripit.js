@@ -8,11 +8,11 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_EMAIL = "Homestucknerdsbrasil@gmail.com";
 
 // ======================
-// Navegação Tabs
+// Navegação entre abas
 // ======================
 function openTab(id) {
-  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
 }
 
 // ======================
@@ -24,23 +24,22 @@ function openModal(id) {
 function closeModal(id) {
   document.getElementById(id + "Modal").style.display = "none";
 }
-function openLogin() { openModal("login"); }
 
 // ======================
-// Login OTP
+// Login por OTP (e-mail)
 // ======================
 async function sendOtp() {
   const email = document.getElementById("loginEmail").value.trim();
   if (!email) return alert("Digite seu e-mail!");
   const { error } = await supabase.auth.signInWithOtp({ email });
   if (error) alert("Erro: " + error.message);
-  else alert("Código enviado para seu e-mail!");
+  else alert("Código enviado para " + email);
 }
 async function verifyOtp() {
   const email = document.getElementById("loginEmail").value.trim();
   const token = document.getElementById("otpCode").value.trim();
   if (!email || !token) return alert("Digite o e-mail e código!");
-  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
   if (error) alert("Erro: " + error.message);
   else {
     closeModal("login");
@@ -57,32 +56,72 @@ async function getCurrentUser() {
 // ======================
 async function loadProfile() {
   const user = await getCurrentUser();
-  const box = document.getElementById("profileInfo");
+  const headerUser = document.getElementById("headerUser");
   if (!user) {
-    box.innerHTML = "Deslogado";
+    headerUser.innerText = "Convidado";
+    document.getElementById("pqContent").innerHTML = "<strong>Sem conta</strong><br><small>Entre com e-mail</small>";
     return;
   }
-  box.innerHTML = user.email;
-
-  // conquistas
-  loadUserAchievements();
-
-  // admin habilita criar tema
+  headerUser.innerText = user.email;
+  document.getElementById("pqContent").innerHTML = `<strong>${user.email}</strong>`;
   if (user.email === ADMIN_EMAIL) {
     document.getElementById("adminThemes").style.display = "block";
   }
+  loadUserAchievements();
 }
 async function loadUserAchievements() {
   const user = await getCurrentUser();
   if (!user) return;
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_achievements")
     .select("achievements(name, icon_url)")
     .eq("user_id", user.id);
-  document.getElementById("savedPopups").innerHTML = data.length ?
-    data.map(a => `<div>🏆 ${a.achievements.name}</div>`).join("") :
-    "Nenhuma conquista ainda.";
+  const list = document.getElementById("savedPopups");
+  if (error || !data.length) {
+    list.innerHTML = "Nenhuma ainda 😢";
+    return;
+  }
+  list.innerHTML = data.map(a => `
+    <div style="display:flex;align-items:center;gap:6px">
+      ${a.achievements.icon_url ? `<img src="${a.achievements.icon_url}" width="20">` : "🏆"}
+      <span>${a.achievements.name}</span>
+    </div>
+  `).join("");
 }
+
+// ======================
+// Leitura + progresso
+// ======================
+async function savePage() {
+  const user = await getCurrentUser();
+  if (!user) return alert("Faça login para salvar progresso!");
+  const pageMeta = document.getElementById("pageMeta").innerText;
+  const match = pageMeta.match(/Página (\d+)/);
+  const pageNumber = match ? parseInt(match[1]) : 1;
+  await supabase.from("progress").upsert({
+    user_id: user.id,
+    page: pageNumber,
+    updated_at: new Date().toISOString()
+  });
+  alert("Progresso salvo!");
+}
+async function loadProgress() {
+  const user = await getCurrentUser();
+  if (!user) return;
+  const { data } = await supabase
+    .from("progress")
+    .select("page")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+  if (data?.length) openPage(data[0].page);
+}
+function openPage(page) {
+  document.getElementById("readerImg").src = `assets/page-${page}.png`;
+  document.getElementById("pageMeta").innerText = `Capítulo 1 — Página ${page}`;
+}
+function previousPage() { /* lógica similar */ }
+function nextPage() { /* lógica similar */ }
 
 // ======================
 // Comentários
@@ -90,7 +129,7 @@ async function loadUserAchievements() {
 async function loadComments() {
   const { data, error } = await supabase.from("comments").select("*").order("created_at", { ascending: false });
   const section = document.getElementById("commentSection");
-  if (error) return section.innerHTML = "Erro ao carregar";
+  if (error) return section.innerHTML = "Erro ao carregar.";
   section.innerHTML = `
     <textarea id="newComment" placeholder="Escreva..."></textarea>
     <button onclick="addComment()">Enviar</button>
@@ -98,12 +137,10 @@ async function loadComments() {
   `;
 }
 async function addComment() {
-  const textarea = document.getElementById("newComment");
-  const text = textarea.value.trim();
-  const user = await getCurrentUser();
+  const text = document.getElementById("newComment").value.trim();
   if (!text) return;
+  const user = await getCurrentUser();
   await supabase.from("comments").insert([{ user: user?.email || "Anônimo", text }]);
-  textarea.value = "";
   loadComments();
 }
 function subscribeToComments() {
@@ -113,12 +150,11 @@ function subscribeToComments() {
         const list = document.getElementById("commentList");
         const c = payload.new;
         list.innerHTML = `<p><b>${c.user}</b>: ${c.text}</p>` + list.innerHTML;
-      })
-    .subscribe();
+      }).subscribe();
 }
 
 // ======================
-// Fanarts
+// Fanarts / Fórum
 // ======================
 async function submitPost() {
   const user = await getCurrentUser();
@@ -134,9 +170,11 @@ async function loadPosts() {
   const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
   const list = document.getElementById("fanartList");
   list.innerHTML = data.map(p => `
-    <div><h4>${p.title}</h4>
-    ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%">` : ""}
-    <p>${p.content}</p></div>
+    <div class="post">
+      <h4>${p.title}</h4>
+      ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%">` : ""}
+      <p>${p.content ?? ""}</p>
+    </div>
   `).join("");
 }
 
@@ -155,6 +193,8 @@ function applyTheme(bg, color) {
   document.documentElement.style.setProperty("--accent", color);
 }
 async function createTheme() {
+  const user = await getCurrentUser();
+  if (user?.email !== ADMIN_EMAIL) return alert("Somente admin pode criar tema!");
   const name = document.getElementById("themeName").value;
   const bg = document.getElementById("themeBg").value;
   const color = document.getElementById("themeColor").value;
@@ -166,6 +206,7 @@ async function createTheme() {
 // Inicialização
 // ======================
 loadProfile();
+loadProgress();
 loadComments();
 subscribeToComments();
 loadPosts();
