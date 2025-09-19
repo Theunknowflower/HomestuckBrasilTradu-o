@@ -15,6 +15,10 @@
 <body>
 
 <header>
+<button class="btn-small" onclick="openProfile()">Editar Perfil</button>
+
+
+
   <div class="brand-left">
     <div>
       <div class="logo">HOMESTUCK</div>
@@ -358,6 +362,28 @@ async function loadComments() {
 }
 
 
+<!-- Modal Perfil -->
+<div id="profileModal" class="modal" style="display:none">
+  <div class="modal-content">
+    <h2>Editar Perfil</h2>
+
+    <div style="margin-bottom:12px">
+      <label>Nome de usuário:</label><br>
+      <input type="text" id="profileUsername" placeholder="Digite seu nome" style="width:100%">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Avatar:</label><br>
+      <input type="file" id="profileAvatar" accept="image/*">
+      <div id="avatarPreview" style="margin-top:8px"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-small" onclick="closeProfile()">Cancelar</button>
+      <button class="btn-main" onclick="saveProfile()">Salvar</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
