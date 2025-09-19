@@ -272,5 +272,51 @@
   loadComments();
 </script>
 
+// função para formatar data em "há X tempo"
+function timeAgo(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = (now - date) / 1000; // segundos
+
+  if (diff < 60) return "agora mesmo";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min atrás`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} h atrás`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)} dias atrás`;
+  return date.toLocaleDateString("pt-BR");
+}
+
+// renderizar comentários
+async function loadComments() {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("commentSection");
+
+  if (error) {
+    container.innerHTML = "<div style='color:red'>Erro ao carregar comentários.</div>";
+    console.error(error);
+    return;
+  }
+
+  container.innerHTML = `
+    <div id="commentForm" style="margin-bottom:12px">
+      <textarea id="newComment" placeholder="Escreva um comentário..." style="width:100%;height:60px"></textarea>
+      <button class="btn-small" onclick="addComment()">Enviar</button>
+    </div>
+    <div id="commentList">
+      ${data.map(c => `
+        <div class="comment" style="margin-bottom:8px">
+          <div style="font-size:13px;color:#666">
+            <strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(c.created_at)}
+          </div>
+          <div>${c.text}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 </body>
 </html>
