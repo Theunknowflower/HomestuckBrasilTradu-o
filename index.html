@@ -1,285 +1,66 @@
-<!-- Supabase SDK -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
-  // 🔑 Configuração
-  const SUPABASE_URL = "https://vhopcdzemdiqtvrwmqqo.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZob3BjZHplbWRpcXR2cndtcXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMjc2MTUsImV4cCI6MjA3MzgwMzYxNX0.j8podlPF9lBz2LfzDq1Z0NYF2QA3tQRK-tOIalWz2sI"; // pegue em Settings → API → anon public
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<head>
+  <meta charset="utf-8">
+  <title>Homestuck PT-BR</title>
+  <link rel="stylesheet" href="style.css">
 
-  // ======================
-  // LOGIN
-  // ======================
-  async function signInWithGoogle() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-    if (error) console.error("Erro no login:", error);
-    else console.log("Login iniciado:", data);
-  }
+  <!-- Fonte Press Start 2P -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <h1>Homestuck PT-BR</h1>
+    <nav>
+      <button onclick="openModal('community')">🎨 Comunidade</button>
+      <button onclick="openModal('profile')">👤 Perfil</button>
+      <button onclick="signInWithGoogle()">🔑 Login</button>
+    </nav>
+  </header>
 
-  async function getCurrentUser() {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) return null;
-    return data.user;
-  }
+  <!-- MAIN -->
+  <main>
+    <section id="reader" class="card">
+      <h2>📖 Leitura</h2>
+      <div id="pageContainer">Carregando páginas...</div>
+    </section>
 
-  // ======================
-  // COMENTÁRIOS
-  // ======================
-  async function loadComments() {
-    const { data, error } = await supabase
-      .from("comments")
-      .select("*")
-      .order("created_at", { ascending: false });
+    <section id="comments" class="card">
+      <h2>💬 Comentários</h2>
+      <div id="commentSection">Carregando comentários...</div>
+    </section>
+  </main>
 
-    const container = document.getElementById("commentSection");
-
-    if (error) {
-      container.innerHTML =
-        "<div style='color:red'>Erro ao carregar comentários.</div>";
-      console.error(error);
-      return;
-    }
-
-    container.innerHTML = `
-      <div id="commentForm" style="margin-bottom:12px">
-        <textarea id="newComment" placeholder="Escreva um comentário..." style="width:100%;height:60px"></textarea>
-        <button class="btn-small" onclick="addComment()">Enviar</button>
-      </div>
-      <div id="commentList">
-        ${data
-          .map(
-            (c) => `
-          <div class="comment" style="margin-bottom:8px">
-            <div style="font-size:13px;color:#666">
-              <strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(
-              c.created_at
-            )}
-            </div>
-            <div>${c.text}</div>
-          </div>
-        `
-          )
-          .join("")}
-      </div>
-    `;
-  }
-
-  async function addComment() {
-    const textarea = document.getElementById("newComment");
-    const text = textarea.value.trim();
-    if (!text) return;
-
-    const user = (await getCurrentUser());
-    const username = user ? user.email : "Convidado";
-
-    const { error } = await supabase
-      .from("comments")
-      .insert([{ user: username, text }]);
-
-    if (error) {
-      alert("Erro ao enviar comentário: " + error.message);
-      return;
-    }
-
-    textarea.value = "";
-    loadComments();
-  }
-
-  function subscribeToComments() {
-    supabase
-      .channel("comments-channel")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "comments" },
-        (payload) => {
-          console.log("Novo comentário:", payload.new);
-          const list = document.getElementById("commentList");
-          if (list) {
-            const c = payload.new;
-            const div = document.createElement("div");
-            div.className = "comment";
-            div.style.marginBottom = "8px";
-            div.innerHTML = `
-              <div style="font-size:13px;color:#666">
-                <strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(
-              c.created_at
-            )}
-              </div>
-              <div>${c.text}</div>
-            `;
-            list.prepend(div);
-          }
-        }
-      )
-      .subscribe();
-  }
-
-  // ======================
-  // PERFIL + CONQUISTAS
-  // ======================
-  async function loadProfile() {
-    const user = await getCurrentUser();
-    const container = document.getElementById("pqContent");
-
-    if (!user) {
-      container.innerHTML = "<strong>Sem conta</strong><br><small>Crie um perfil com Gmail</small>";
-      return;
-    }
-
-    // puxar dados do perfil na tabela "profiles"
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (error || !data) {
-      container.innerHTML = `<strong>${user.email}</strong><br><small>Perfil não configurado</small>`;
-      return;
-    }
-
-    container.innerHTML = `
-      <strong>${data.username ?? user.email}</strong>
-      <br><small>${data.bio ?? "Sem descrição"}</small>
-    `;
-
-    // carregar conquistas
-    const achievementsDiv = document.getElementById("profileAchievements");
-    const { data: ach, error: achError } = await supabase
-      .from("achievements")
-      .select("*")
-      .eq("user_id", user.id);
-
-    if (achError) {
-      achievementsDiv.innerHTML = "Erro ao carregar conquistas";
-      return;
-    }
-
-    achievementsDiv.innerHTML = ach.length
-      ? ach.map((a) => `<div>🏆 ${a.title}</div>`).join("")
-      : "Nenhuma conquista ainda.";
-  }
-
-  // ======================
-  // FANARTS
-  // ======================
-  async function loadFanarts() {
-    const user = await getCurrentUser();
-    const container = document.getElementById("profileFanarts");
-    if (!user) {
-      container.innerHTML = "Entre para ver suas fanarts.";
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("fanarts")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      container.innerHTML = "Erro ao carregar fanarts.";
-      return;
-    }
-
-    container.innerHTML = data.length
-      ? data
-          .map(
-            (f) => `
-          <div class="fanart">
-            <strong>${f.title}</strong>
-            <p>${f.description ?? ""}</p>
-            ${f.image_url ? `<img src="${f.image_url}" style="max-width:100%">` : ""}
-          </div>
-        `
-          )
-          .join("")
-      : "Nenhuma fanart enviada.";
-  }
-
-  async function submitPost() {
-    const user = await getCurrentUser();
-    if (!user) {
-      alert("Você precisa estar logado.");
-      return;
-    }
-
-    const title = document.getElementById("postTitle").value.trim();
-    const description = document.getElementById("postContent").value.trim();
-    const image = document.getElementById("postImage").value.trim();
-
-    const { error } = await supabase.from("fanarts").insert([
-      {
-        user_id: user.id,
-        title,
-        description,
-        image_url: image,
-      },
-    ]);
-
-    if (error) {
-      alert("Erro ao publicar: " + error.message);
-      return;
-    }
-
-    alert("Fanart publicada!");
-    loadFanarts();
-    closeModal("newPost");
-  }
-
-  // ======================
-  // HELPERS
-  // ======================
-  function timeAgo(dateString) {
-    const date = new Date(dateString);
-    const seconds = Math.floor((new Date() - date) / 1000);
-    const intervals = {
-      ano: 31536000,
-      mês: 2592000,
-      dia: 86400,
-      hora: 3600,
-      minuto: 60,
-    };
-    for (let key in intervals) {
-      const value = intervals[key];
-      const interval = Math.floor(seconds / value);
-      if (interval >= 1) return `${interval} ${key}${interval > 1 ? "s" : ""} atrás`;
-    }
-    return "agora";
-  }
-
-  // ======================
-  // INICIALIZAÇÃO
-  // ======================
-  loadComments();
-  subscribeToComments();
-  loadProfile();
-  loadFanarts();
-</script>
-<!-- Modal Comunidade -->
-<div id="communityModal" class="modal" style="display:none">
-  <div class="modal-content" style="max-width:700px">
-    <h2>Comunidade 🎨</h2>
-
-    <!-- Form novo post -->
-    <div style="margin-bottom:16px">
-      <h3>Novo Post / Fanart</h3>
-      <input type="text" id="postTitle" placeholder="Título" style="width:100%;margin-bottom:8px">
-      <textarea id="postContent" placeholder="Descrição (opcional)" style="width:100%;height:80px;margin-bottom:8px"></textarea>
-      <input type="url" id="postImage" placeholder="URL da imagem (opcional)" style="width:100%;margin-bottom:8px">
-      <button class="btn-main" onclick="submitPost()">Publicar</button>
-    </div>
-
-    <hr>
-
-    <!-- Lista de posts -->
-    <h3>Posts da comunidade</h3>
-    <div id="communityPosts">Carregando posts...</div>
-
-    <div style="text-align:right;margin-top:12px">
-      <button class="btn-small" onclick="closeModal('community')">Fechar</button>
+  <!-- PROFILE MODAL -->
+  <div id="profileModal" class="modal">
+    <div class="modal-content">
+      <h2>Perfil 👤</h2>
+      <div id="pqContent">Carregando...</div>
+      <h3>🏆 Conquistas</h3>
+      <div id="profileAchievements"></div>
+      <h3>🎨 Minhas Fanarts</h3>
+      <div id="profileFanarts"></div>
+      <button onclick="closeModal('profile')">Fechar</button>
     </div>
   </div>
-</div>
 
+  <!-- COMMUNITY MODAL -->
+  <div id="communityModal" class="modal">
+    <div class="modal-content">
+      <h2>Comunidade 🎨</h2>
+      <div style="margin-bottom:16px">
+        <h3>Novo Post / Fanart</h3>
+        <input type="text" id="postTitle" placeholder="Título">
+        <textarea id="postContent" placeholder="Descrição (opcional)"></textarea>
+        <input type="url" id="postImage" placeholder="URL da imagem (opcional)">
+        <button onclick="submitPost()">Publicar</button>
+      </div>
+      <hr>
+      <h3>Posts da comunidade</h3>
+      <div id="communityPosts">Carregando posts...</div>
+      <button onclick="closeModal('community')">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Seu script Supabase entra aqui -->
+  <script src="supabase.js"></script>
+</body>
