@@ -169,7 +169,7 @@
   import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
   const SUPABASE_URL = "https://vhopcdzemdiqtvrwmqqo.supabase.co"; // seu projeto
-  const SUPABASE_KEY = "SUA_CHAVE_ANON_PUBLICA"; // pegar em Settings → API
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZob3BjZHplbWRpcXR2cndtcXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMjc2MTUsImV4cCI6MjA3MzgwMzYxNX0.j8podlPF9lBz2LfzDq1Z0NYF2QA3tQRK-tOIalWz2sI"; // pegar em Settings → API
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // login com Gmail
@@ -199,6 +199,78 @@
 
 <!-- JS do site -->
 <script src="script.js"></script>
+<!-- Supabase SDK -->
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+  const SUPABASE_URL = "https://vhopcdzemdiqtvrwmqqo.supabase.co";
+  const SUPABASE_KEY = "SUA_CHAVE_ANON_PUBLICA"; // troque pela chave correta
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // login com Gmail
+  async function signInWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google'
+    });
+    if (error) console.error(error);
+    else console.log("Login iniciado", data);
+  }
+
+  // renderizar comentários
+  async function loadComments() {
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    const container = document.getElementById("commentSection");
+
+    if (error) {
+      container.innerHTML = "<div style='color:red'>Erro ao carregar comentários.</div>";
+      console.error(error);
+      return;
+    }
+
+    container.innerHTML = `
+      <div id="commentForm" style="margin-bottom:12px">
+        <textarea id="newComment" placeholder="Escreva um comentário..." style="width:100%;height:60px"></textarea>
+        <button class="btn-small" onclick="addComment()">Enviar</button>
+      </div>
+      <div id="commentList">
+        ${data.map(c => `
+          <div class="comment">
+            <strong>${c.user ?? "Anônimo"}</strong>: ${c.text}
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  // adicionar comentário
+  async function addComment() {
+    const textarea = document.getElementById("newComment");
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    const user = (await supabase.auth.getUser()).data.user;
+    const username = user ? user.email : "Convidado";
+
+    const { error } = await supabase
+      .from("comments")
+      .insert([{ user: username, text }]);
+
+    if (error) {
+      alert("Erro ao enviar comentário: " + error.message);
+      return;
+    }
+
+    textarea.value = "";
+    loadComments(); // recarrega lista
+  }
+
+  // carregar ao abrir
+  loadComments();
+</script>
 
 </body>
 </html>
