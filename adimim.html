@@ -23,3 +23,70 @@
     <button onclick="closeModal('themes')">Fechar</button>
   </div>
 </div>
+const ADMIN_EMAIL = "homestucknerdsbrasil@gmail.com"; // altere para seu e-mail de admin
+
+// Checar se é admin
+async function checkAdmin() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user && user.email === ADMIN_EMAIL) {
+    document.getElementById("adminMenu").style.display = "block";
+  }
+}
+
+// Criar tema
+async function createTheme(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("themeName").value;
+  const wallpaper_url = document.getElementById("themeWallpaper").value;
+  const accent_color = document.getElementById("themeAccent").value;
+  const text_color = document.getElementById("themeText").value;
+  const bg_color = document.getElementById("themeBg").value;
+
+  const { error } = await supabase.from("themes").insert([
+    { name, wallpaper_url, accent_color, text_color, bg_color }
+  ]);
+
+  if (error) {
+    alert("Erro ao criar tema!");
+    console.error(error);
+  } else {
+    alert("Tema criado com sucesso!");
+    loadThemes();
+  }
+}
+
+// Listar temas
+async function loadThemes() {
+  const { data, error } = await supabase.from("themes").select("*");
+  if (error) return console.error(error);
+
+  const list = document.getElementById("themesList");
+  list.innerHTML = "";
+
+  data.forEach(theme => {
+    const div = document.createElement("div");
+    div.classList.add("card");
+    div.innerHTML = `
+      <p><strong>${theme.name}</strong></p>
+      <p>Accent: ${theme.accent_color}</p>
+      <button onclick="deleteTheme('${theme.id}')">Excluir</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// Deletar tema
+async function deleteTheme(id) {
+  const { error } = await supabase.from("themes").delete().eq("id", id);
+  if (error) {
+    alert("Erro ao excluir tema!");
+    console.error(error);
+  } else {
+    alert("Tema excluído!");
+    loadThemes();
+  }
+}
+
+// Rodar ao carregar
+checkAdmin();
