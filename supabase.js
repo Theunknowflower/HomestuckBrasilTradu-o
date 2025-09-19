@@ -58,3 +58,58 @@ function subscribeToProgress() {
       .subscribe();
   });
 }
+async function loadProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("username, avatar_url")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("headerUser").innerText = data.username ?? "Sem nome";
+  if (data.avatar_url) {
+    document.querySelector(".user-avatar").innerHTML = `<img src="${data.avatar_url}" alt="avatar" style="width:100%;border-radius:50%">`;
+  }
+}
+async function updateUsername(newName) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ username: newName })
+    .eq("id", user.id);
+
+  if (error) console.error(error);
+  else alert("Nome atualizado!");
+}
+async function uploadAvatar(file) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const filePath = `${user.id}/${file.name}`;
+
+  let { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    console.error(uploadError);
+    return;
+  }
+
+  const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+  // salva URL no perfil
+  await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
+
+  alert("Avatar atualizado!");
+}
+
