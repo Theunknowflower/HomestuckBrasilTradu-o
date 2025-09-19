@@ -6,97 +6,115 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Homestuck Brasil</title>
+  <title>Homestuck — Tradução de Fã</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Header -->
   <header>
-    <div class="logo">
-      <h1>HOMESTUCK</h1>
-      <p>TRADUÇÃO DE FÃ</p>
-    </div>
-    <div class="user-area">
-      <span id="user-info">Usuário</span>
-      <button id="auth-btn">Entrar</button>
-      <button id="logout-btn" style="display:none;">Sair</button>
+    <h1>HOMESTUCK</h1>
+    <h2>TRADUÇÃO DE FÃ</h2>
+    <div class="user-menu">
+      <span id="username">Convidado</span>
+      <button onclick="openModal('login')">Login</button>
+      <button id="logoutBtn" style="display:none" onclick="logout()">Sair</button>
     </div>
   </header>
 
-  <!-- Menu -->
+  <!-- Navegação -->
   <nav>
-    <button onclick="loadPage(1)">LER</button>
-    <button>TRADUÇÃO</button>
-    <button>CONQUISTAS</button>
-    <button>DATA</button>
+    <button class="tab active" onclick="openTab('reader')">LER</button>
+    <button class="tab" onclick="openTab('traducao')">TRADUÇÃO</button>
+    <button class="tab" onclick="openTab('conquistas')">CONQUISTAS</button>
+    <button class="tab" onclick="openTab('data')">DATA</button>
+    <button class="tab" onclick="openTab('comunidade')">COMUNIDADE</button>
   </nav>
 
-  <!-- Main -->
+  <!-- Conteúdo principal -->
   <main>
-    <!-- Área de leitura -->
-    <section id="reader" class="card">
-      <div id="page-content" class="page-box">
-        <p>Carregando página...</p>
-      </div>
+    <!-- Leitor -->
+    <section id="reader" class="card panel" style="display:block">
+      <img src="assets/page1.png" alt="Página Homestuck" id="pageImg">
       <div class="controls">
-        <button onclick="prevPage()">Anterior</button>
-        <button onclick="savePage()">Salvar</button>
-        <button onclick="nextPage()">Próxima</button>
+        <button onclick="saveProgress()">💾 Salvar</button>
+        <button onclick="prevPage()">◀ Anterior</button>
+        <button onclick="nextPage()">Próxima ▶</button>
       </div>
     </section>
 
-    <!-- Info lateral -->
-    <aside class="card" id="project-info">
-      <h3>Informações do Projeto</h3>
+    <!-- Tradução -->
+    <section id="traducao" class="card panel">
+      <h3>Informações da Tradução</h3>
       <p><b>Equipe:</b> Rafa + Comunidade</p>
       <p><b>Status:</b> Ato 1 — em progresso</p>
-      <p><b>Domínio:</b> em breve (ex: seudominio.com.br)</p>
       <p><b>Licença:</b> Trabalho de fã, sem fins lucrativos.</p>
-      <small>Homestuck © Andrew Hussie</small>
+    </section>
+
+    <!-- Conquistas -->
+    <section id="conquistas" class="card panel">
+      <h3>Conquistas</h3>
+      <div id="achievementsList"></div>
+    </section>
+
+    <!-- Data -->
+    <section id="data" class="card panel">
+      <h3>Índice de páginas</h3>
+      <div id="pageIndex"></div>
+    </section>
+
+    <!-- Comunidade -->
+    <section id="comunidade" class="card panel">
+      <h3>Fanarts & Fórum </h3>
+      <div id="communityForm">
+        <input type="text" id="postTitle" placeholder="Título" style="width:100%;margin-bottom:8px">
+        <textarea id="postContent" placeholder="Descrição (opcional)" style="width:100%;height:60px;margin-bottom:8px"></textarea>
+        <input type="url" id="postImage" placeholder="URL da imagem (opcional)" style="width:100%;margin-bottom:8px">
+        <button class="btn-main" onclick="submitPost()">Publicar</button>
+      </div>
+      <hr>
+      <div id="communityPosts">Carregando posts...</div>
+    </section>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="info-box">
+        <h3>Informações do Projeto</h3>
+        <p><b>Equipe:</b> Rafa + Comunidade</p>
+        <p><b>Status:</b> Ato 1</p>
+        <p><b>Domínio:</b> em breve</p>
+      </div>
+      <div class="info-box">
+        <h3>Conquistas salvas</h3>
+        <div id="savedAchievements">Nenhuma ainda</div>
+      </div>
     </aside>
   </main>
 
   <!-- Comentários -->
-  <section id="comments" class="card">
+  <section class="comments card">
     <h3>Comentários</h3>
     <textarea id="commentBox" placeholder="Escreva seu comentário..."></textarea>
-    <button onclick="sendComment()">Enviar</button>
+    <button onclick="addComment()">Enviar</button>
     <div id="commentList"></div>
   </section>
 
-  <!-- Conquistas -->
-  <section id="achievements" class="card">
-    <h3>Conquistas</h3>
-    <div id="achievements-list">
-      <div class="achievement">
-        <img src="assets/conquista1.png" alt="Conquista">
-        <p><b>Primeira página</b><br>Leu à primeira página</p>
-      </div>
+  <!-- Modal de Login -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <h2>Login</h2>
+      <button onclick="loginWithOTP()"> Link Mágico (e-mail)</button>
+      <button onclick="loginWithPassword()"> Usuário e Senha</button>
+      <button onclick="signUpWithPassword()"> Criar Conta</button>
+      <br>
+      <button onclick="closeModal('login')">Fechar</button>
     </div>
-  </section>
+  </div>
 
-  <!-- Supabase + scripts -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/profiles.js"></script>
-  <script src="js/posts.js"></script>
-  <script src="js/comments.js"></script>
-  <script src="js/progress.js"></script>
-  <script src="js/achievements.js"></script>
-
-  <script>
-    // Carregamento inicial
-    document.addEventListener("DOMContentLoaded", () => {
-      loadProfile();
-      loadCommunityPosts();
-      loadComments();
-      loadAchievements();
-    });
-  </script>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
-
 
 
