@@ -1,36 +1,64 @@
-// importa cliente do Supabase
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// comments.js
 
-// inicializa
-const SUPABASE_URL = "https://vhopcdzemdiqtvrwmqqo.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZob3BjZHplbWRpcXR2cndtcXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMjc2MTUsImV4cCI6MjA3MzgwMzYxNX0.j8podlPF9lBz2LfzDq1Z0NYF2QA3tQRK-tOIalWz2sI"; // copia da dashboard
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-import { supabase, getUser } from "./supabase.js";
-
-export async function loadProfile() {
-  const user = await getUser();
-  if (!user) return null;
-
+async function loadComments() {
   const { data, error } = await supabase
-    .from("profiles")
-    .select("username, avatar_url")
-    .eq("id", user.id)
-    .single();
+    .from("comments")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  if (error) throw error;
-  return data;
+  const container = document.getElementById("commentSection");
+
+  if (error) {
+    container.innerHTML = "<div style='color:red'>Erro ao carregar comentários.</div>";
+    console.error(error);
+    return;
+  }
+
+  container.innerHTML = data.map(c => `
+    <div class="comment">
+      <strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(c.created_at)}<br>
+      ${c.text}
+    </div>
+  `).join("");
 }
 
-export async function updateProfile(updates) {
-  const user = await getUser();
-  if (!user) return;
+async function addComment() {
+  const textarea = document.getElementById("newComment");
+  const text = textarea.value.trim();
+  if (!text) return;
 
-  const { error } = await supabase
-    .from("profiles")
-    .update(updates)
-    .eq("id", user.id);
+  const { data: { user } } = await supabase.auth.getUser();
+  const username = user ? user.email : "Convidado";
 
-  if (error) throw error;
+  const { error } = await supabase.from("comments").insert([{ user: username, text }]);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  textarea.value = "";
+  loadComments();
 }
+
+function subscribeToComments() {
+  supabase.channel("comments-channel")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "comments" }, payload => {
+      const list = document.getElementById("commentSection");
+      const c = payload.new;
+      const div = document.createElement("div");
+      div.innerHTML = `<strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(c.created_at)}<br>${c.text}`;
+      list.prepend(div);
+    })
+    .subscribe();
+}
+
+function timeAgo(dateString) {
+  const date = new Date(dateString);
+  const diff = (new Date() - date) / 1000;
+  if (diff < 60) return "agora";
+  if (diff < 3600) return Math.floor(diff / 60) + " min atrás";
+  if (diff < 86400) return Math.floor(diff / 3600) + " h atrás";
+  return date.toLocaleDateString("pt-BR");
+}
+
