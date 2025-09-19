@@ -1,0 +1,25 @@
+<!-- Botão só aparece se for admin -->
+<nav id="adminMenu" style="display:none;">
+  <button onclick="openModal('themes')">Gerenciar Temas</button>
+</nav>
+
+<!-- Modal de gerenciamento -->
+<div id="themesModal" class="modal">
+  <div class="modal-content">
+    <h2>Gerenciar Temas</h2>
+
+    <form onsubmit="createTheme(event)">
+      <input type="text" id="themeName" placeholder="Nome do tema" required>
+      <input type="url" id="themeWallpaper" placeholder="URL do wallpaper">
+      <input type="color" id="themeAccent" value="#00ffcc">
+      <input type="color" id="themeText" value="#ffffff">
+      <input type="color" id="themeBg" value="#000000">
+      <button type="submit">Criar Tema</button>
+    </form>
+
+    <h3>Temas existentes</h3>
+    <div id="themesList"></div>
+
+    <button onclick="closeModal('themes')">Fechar</button>
+  </div>
+</div>
