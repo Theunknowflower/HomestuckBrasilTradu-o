@@ -213,6 +213,47 @@
 </body>
 </html>
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Homestuck BR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script type="module" src="app.js" defer></script>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <h1>Homestuck BR</h1>
+    <button id="loginBtn">Login Google</button>
+  </header>
+
+  <!-- PERFIL -->
+  <section id="profileCard" class="card">
+    <img id="profileAvatar" class="avatar" src="https://i.ibb.co/6Zf8hYM/default-avatar.png">
+    <div>
+      <h2 id="profileName">Convidado</h2>
+      <p id="profileBio">Entre com sua conta!</p>
+    </div>
+    <div id="adminControls" style="display:none;">
+      <h3>🎨 Admin: Mudar Wallpaper</h3>
+      <input type="url" id="wallpaperInput" placeholder="URL da imagem">
+      <button onclick="updateWallpaper()">Salvar</button>
+    </div>
+  </section>
+
+  <!-- FEED -->
+  <main id="feed"></main>
+
+  <!-- NOVO POST -->
+  <footer>
+    <textarea id="newPost" placeholder="O que está acontecendo?" rows="2"></textarea>
+    <button onclick="submitPost()">Publicar</button>
+  </footer>
+</body>
+</html>
 
 
 
