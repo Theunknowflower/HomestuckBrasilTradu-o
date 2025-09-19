@@ -37,11 +37,18 @@ async function signInEmail(email, password) {
       console.error("Erro ao buscar perfil:", profileError.message)
     }
 
-    // Atualizar UI com nome de exibição
+    // Definir nome de exibição
     const displayName = profile?.display_name || user.email
     document.getElementById("headerUser").innerText = displayName
 
-    alert(`Login bem-sucedido! Bem-vindo ${displayName}`)
+    // Checagem de role
+    if (profile?.role === "admin") {
+      alert(`Login bem-sucedido! Bem-vindo admin ${displayName}`)
+      document.body.classList.add("is-admin") // adiciona uma classe no <body> p/ customizar
+    } else {
+      alert(`Login bem-sucedido! Bem-vindo ${displayName}`)
+      document.body.classList.remove("is-admin")
+    }
   }
 }
 
@@ -50,6 +57,7 @@ async function signOut() {
   await supabase.auth.signOut()
   alert("Você saiu da conta.")
   document.getElementById("headerUser").innerText = "Convidado"
+  document.body.classList.remove("is-admin")
 }
 
 // Expor funções pro HTML
