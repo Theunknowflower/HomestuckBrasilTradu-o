@@ -2,7 +2,7 @@ import { supabase, getUser } from "./supabase.js";
 
 export async function loadProfile() {
   const user = await getUser();
-  if (!user) return;
+  if (!user) return null;
 
   const { data, error } = await supabase
     .from("profiles")
