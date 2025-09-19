@@ -30,26 +30,24 @@
   </nav>
 
   <div class="user-area">
-    <div style="display:flex;flex-direction:column;align-items:flex-end">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;position:relative;">
       <div style="display:flex;gap:8px;align-items:center">
-        <div class="user-avatar">U</div>
+        <div class="user-avatar" onclick="toggleLoginMenu()">U</div>
         <div style="color:var(--branco);opacity:.95" id="headerUser">Convidado</div>
       </div>
-      <!-- Formulário de login/cadastro -->
-      <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px;">
+      <!-- Menu suspenso de login -->
+      <div id="loginMenu" style="display:none;flex-direction:column;gap:4px;margin-top:6px;background:#222;padding:10px;border-radius:6px;position:absolute;top:40px;right:0;z-index:100;">
         <input type="email" id="loginEmail" placeholder="E-mail">
         <input type="password" id="loginPass" placeholder="Senha">
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button class="btn-small" onclick="signInEmail(
-            document.getElementById('loginEmail').value,
-            document.getElementById('loginPass').value
-          )">Entrar</button>
-          <button class="btn-small" onclick="signUpEmail(
-            document.getElementById('loginEmail').value,
-            document.getElementById('loginPass').value
-          )">Cadastrar</button>
-          <button class="btn-small" onclick="signOut()">Sair</button>
-        </div>
+        <button class="btn-small" onclick="signInEmail(
+          document.getElementById('loginEmail').value,
+          document.getElementById('loginPass').value
+        )">Entrar</button>
+        <button class="btn-small" onclick="signUpEmail(
+          document.getElementById('loginEmail').value,
+          document.getElementById('loginPass').value
+        )">Cadastrar</button>
+        <button class="btn-small" onclick="signOut()">Sair</button>
       </div>
     </div>
   </div>
@@ -140,18 +138,6 @@
     </div>
 
     <div class="info-box">
-      <h4>Criar conta / Perfil</h4>
-      <div style="margin-top:8px;font-size:13px;color:#666">
-        Para comentar, postar e salvar fanarts você precisa de conta.
-      </div>
-    </div>
-
-    <div class="info-box">
-      <h4>Conquistas salvas</h4>
-      <div id="savedPopups">Nenhuma ainda</div>
-    </div>
-
-    <div class="info-box">
       <h4>Comunidade / Fórum</h4>
       <div style="font-size:13px;color:#444">
         Espaço para postar desenhos, vídeos e notícias. Moderado.
@@ -170,10 +156,26 @@
   </div>
 </div>
 
-<!-- Scripts -->
 <script src="assets/js/script.js"></script>
-<script src="assets/js/auth.js"></script>
+
+<script>
+function toggleLoginMenu() {
+  const menu = document.getElementById("loginMenu");
+  menu.style.display = (menu.style.display === "none" || menu.style.display === "") 
+    ? "flex" 
+    : "none";
+}
+
+function openTab(tabId) {
+  document.querySelectorAll(".panel").forEach(panel => {
+    panel.style.display = "none";
+  });
+  const target = document.getElementById(tabId);
+  if (target) target.style.display = "block";
+}
+</script>
 
 </body>
 </html>
+
 
