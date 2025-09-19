@@ -113,3 +113,75 @@ async function uploadAvatar(file) {
   alert("Avatar atualizado!");
 }
 
+function openProfile() {
+  document.getElementById("profileModal").style.display = "flex";
+  loadProfileForm();
+}
+
+function closeProfile() {
+  document.getElementById("profileModal").style.display = "none";
+}
+
+// carregar dados atuais no form
+async function loadProfileForm() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("username, avatar_url")
+    .eq("id", user.id)
+    .single();
+
+  if (error) return console.error(error);
+
+  document.getElementById("profileUsername").value = data.username ?? "";
+  if (data.avatar_url) {
+    document.getElementById("avatarPreview").innerHTML =
+      `<img src="${data.avatar_url}" alt="avatar" style="width:80px;border-radius:50%">`;
+  }
+}
+
+// salvar mudanças
+async function saveProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const username = document.getElementById("profileUsername").value.trim();
+  const file = document.getElementById("profileAvatar").files[0];
+
+  let avatarUrl = null;
+
+  if (file) {
+    const filePath = `${user.id}/${file.name}`;
+    let { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      alert("Erro ao enviar avatar!");
+      return;
+    }
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    avatarUrl = data.publicUrl;
+  }
+
+  const updates = {};
+  if (username) updates.username = username;
+  if (avatarUrl) updates.avatar_url = avatarUrl;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", user.id);
+
+  if (error) {
+    alert("Erro ao salvar perfil!");
+    console.error(error);
+  } else {
+    alert("Perfil atualizado!");
+    closeProfile();
+    loadProfile(); // atualiza header
+  }
+}
