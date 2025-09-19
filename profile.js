@@ -1,28 +1,23 @@
-// profile.js
-
+// js/profiles.js
 async function loadProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  const container = document.getElementById("profile");
+  const user = await getCurrentUser();
+  const container = document.getElementById("profileBox");
 
   if (!user) {
-    container.innerHTML = "<strong>Não logado</strong>";
+    container.innerHTML = "<p>Você não está logado.</p>";
     return;
   }
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("username, bio, avatar_url")
-    .eq("id", user.id)
-    .single();
+  let { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-  if (error || !data) {
-    container.innerHTML = `<strong>${user.email}</strong><br><small>Perfil não configurado</small>`;
-    return;
+  if (!data) {
+    // cria perfil vazio se não existir
+    await supabase.from("profiles").insert([{ id: user.id, username: user.email }]);
+    data = { username: user.email, bio: "" };
   }
 
   container.innerHTML = `
-    <img src="${data.avatar_url ?? 'https://i.ibb.co/YPXkTZK/default-avatar.png'}" style="width:50px;border-radius:50%">
-    <br><strong>${data.username ?? user.email}</strong>
-    <br><small>${data.bio ?? "Sem bio"}</small>
+    <h3>@${data.username}</h3>
+    <p>${data.bio || "Sem descrição ainda."}</p>
   `;
 }
