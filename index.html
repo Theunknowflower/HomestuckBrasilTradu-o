@@ -384,6 +384,22 @@ async function loadComments() {
     </div>
   </div>
 </div>
+<div style="margin-top:16px">
+  <h3>Minhas conquistas</h3>
+  <div id="profileAchievements">Carregando...</div>
+</div>
+<div id="modal-newPost" class="modal" style="display:none">
+  <div class="modal-content">
+    <h3>Nova Fanart</h3>
+    <input type="text" id="postTitle" placeholder="Título" />
+    <textarea id="postContent" placeholder="Descrição"></textarea>
+    <input type="url" id="postImage" placeholder="URL da imagem" />
+    <div style="margin-top:8px">
+      <button class="btn-main" onclick="submitPost()">Publicar</button>
+      <button class="btn-small" onclick="closeModal('newPost')">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
