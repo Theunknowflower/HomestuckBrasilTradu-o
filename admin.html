@@ -1,102 +1,71 @@
-<!-- Botão só aparece se for admin -->
-<nav id="adminMenu" style="display:none;">
-  <button onclick="openModal('themes')">Gerenciar Temas</button>
-</nav>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Painel Admin — Homestuck Tradução</title>
 
-<!-- Modal de gerenciamento -->
-<div id="themesModal" class="modal">
-  <div class="modal-content">
-    <h2>Gerenciar Temas</h2>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
 
-    <form onsubmit="createTheme(event)">
-      <input type="text" id="themeName" placeholder="Nome do tema" required>
-      <input type="url" id="themeWallpaper" placeholder="URL do wallpaper">
-      <input type="color" id="themeAccent" value="#00ffcc">
-      <input type="color" id="themeText" value="#ffffff">
-      <input type="color" id="themeBg" value="#000000">
-      <button type="submit">Criar Tema</button>
-    </form>
-
-    <h3>Temas existentes</h3>
-    <div id="themesList"></div>
-
-    <button onclick="closeModal('themes')">Fechar</button>
+<header>
+  <div class="brand-left">
+    <div>
+      <div class="logo">ADMIN</div>
+      <div class="subtitle logo-sub">Homestuck — Tradução</div>
+    </div>
   </div>
-</div>
-const ADMIN_EMAIL = "homestucknerdsbrasil@gmail.com"; // altere para seu e-mail de admin
 
-// Checar se é admin
-async function checkAdmin() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user && user.email === ADMIN_EMAIL) {
-    document.getElementById("adminMenu").style.display = "block";
-  }
-}
+  <div class="user-area">
+    <div style="display:flex;flex-direction:column;align-items:flex-end">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="user-avatar">A</div>
+        <div style="color:var(--branco);opacity:.95" id="headerUser">Convidado</div>
+      </div>
+      <!-- Formulário de login/cadastro -->
+      <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px;">
+        <input type="email" id="loginEmail" placeholder="E-mail">
+        <input type="password" id="loginPass" placeholder="Senha">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-small" onclick="signInEmail(
+            document.getElementById('loginEmail').value,
+            document.getElementById('loginPass').value
+          )">Entrar</button>
+          <button class="btn-small" onclick="signUpEmail(
+            document.getElementById('loginEmail').value,
+            document.getElementById('loginPass').value
+          )">Cadastrar</button>
+          <button class="btn-small" onclick="signOut()">Sair</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-// Criar tema
-async function createTheme(e) {
-  e.preventDefault();
+<main class="container" id="adminApp">
+  <section class="panel">
+    <h2>Painel Administrativo</h2>
+    <p>Somente usuários logados devem acessar este painel.</p>
 
-  const name = document.getElementById("themeName").value;
-  const wallpaper_url = document.getElementById("themeWallpaper").value;
-  const accent_color = document.getElementById("themeAccent").value;
-  const text_color = document.getElementById("themeText").value;
-  const bg_color = document.getElementById("themeBg").value;
+    <div id="adminContent" style="margin-top:16px;display:none">
+      <h3>Gerenciar Páginas</h3>
+      <button class="btn-main" onclick="addPage()">Adicionar Página</button>
+      <div id="pageList" style="margin-top:12px"></div>
 
-  const { error } = await supabase.from("themes").insert([
-    { name, wallpaper_url, accent_color, text_color, bg_color }
-  ]);
+      <h3 style="margin-top:24px">Gerenciar Usuários</h3>
+      <div id="userList"></div>
 
-  if (error) {
-    alert("Erro ao criar tema!");
-    console.error(error);
-  } else {
-    alert("Tema criado com sucesso!");
-    loadThemes();
-  }
-}
+      <h3 style="margin-top:24px">Gerenciar Temas</h3>
+      <div id="adminThemes"></div>
+    </div>
+  </section>
+</main>
 
-// Listar temas
-async function loadThemes() {
-  const { data, error } = await supabase.from("themes").select("*");
-  if (error) return console.error(error);
+<!-- Scripts -->
+<script src="assets/js/admin.js"></script>
+<script src="assets/js/auth.js"></script>
 
-  const list = document.getElementById("themesList");
-  list.innerHTML = "";
-
-  data.forEach(theme => {
-    const div = document.createElement("div");
-    div.classList.add("card");
-    div.innerHTML = `
-      <p><strong>${theme.name}</strong></p>
-      <p>Accent: ${theme.accent_color}</p>
-      <button onclick="deleteTheme('${theme.id}')">Excluir</button>
-    `;
-    list.appendChild(div);
-  });
-}
-
-// Deletar tema
-async function deleteTheme(id) {
-  const { error } = await supabase.from("themes").delete().eq("id", id);
-  if (error) {
-    alert("Erro ao excluir tema!");
-    console.error(error);
-  } else {
-    alert("Tema excluído!");
-    loadThemes();
-  }
-}
-
-// Rodar ao carregar
-checkAdmin();
-<script src="assets/js/script.js"></script>
-
-<nav>
-  <ul>
-    <li><a href="translations/act1.html">Ato 1</a></li>
-    <li><a href="translations/act2.html">Ato 2</a></li>
-    <li><a href="translations/act3.html">Ato 3</a></li>
-  </ul>
-</nav>
-
+</body>
+</html>
