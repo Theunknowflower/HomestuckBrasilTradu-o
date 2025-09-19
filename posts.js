@@ -34,3 +34,9 @@ async function submitPost() {
 
   loadCommunityPosts();
 }
+function openTab(id) {
+  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
+  document.querySelectorAll(".sidebar nav button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+}
