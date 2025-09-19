@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Homestuck — Tradução de Fã</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Homestuck — Tradução de Fã</title>
 
-<!-- Fonte Press Start 2P -->
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Fonte -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
-<!-- CSS -->
-<link rel="stylesheet" href="style.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <header>
@@ -22,36 +21,36 @@
     </div>
   </div>
 
-  <nav class="tabs" aria-label="Navegação principal">
-    <div class="tab" role="button" onclick="openTab('ler')">LER</div>
-    <div class="tab" role="button" onclick="openTab('traducao')">TRADUÇÃO</div>
-    <div class="tab" role="button" onclick="openTab('conquistas')">CONQUISTAS</div>
-    <div class="tab" role="button" onclick="openTab('data')">DATA</div>
-    <div class="tab" role="button" onclick="openTab('temas')">TEMAS</div>
+  <nav class="tabs">
+    <div class="tab active" onclick="openTab('ler')">LER</div>
+    <div class="tab" onclick="openTab('traducao')">TRADUÇÃO</div>
+    <div class="tab" onclick="openTab('conquistas')">CONQUISTAS</div>
+    <div class="tab" onclick="openTab('data')">DATA</div>
+    <div class="tab" onclick="openTab('temas')">TEMAS</div>
   </nav>
 
   <div class="user-area">
     <div style="display:flex;flex-direction:column;align-items:flex-end">
       <div style="display:flex;gap:8px;align-items:center">
         <div class="user-avatar">U</div>
-        <div style="color:var(--branco);opacity:.95" id="headerUser">Convidado</div>
+        <div id="headerUser">Convidado</div>
       </div>
       <div style="margin-top:6px">
-        <button class="btn-small" onclick="openModal('login')">Entrar</button>
+        <button class="btn-small" onclick="openModal('login')">Login</button>
       </div>
     </div>
   </div>
 </header>
 
-<main class="container" id="app">
+<main class="container">
   <section>
-    <!-- LER -->
+    <!-- ABA LER -->
     <div id="ler" class="panel" style="display:block">
       <h2>Ler — Página atual</h2>
-      <div class="reader-image" id="readerArea">
-        <img id="readerImg" src="exemplo.png" alt="Painel da comic" />
+      <div class="reader-image">
+        <img id="readerImg" src="" alt="Painel da comic">
         <div class="reader-cta">
-          <button class="btn-main" id="readPageBtn">Ler esta página (embed)</button>
+          <button class="btn-main" onclick="toggleEmbed()">Ler esta página (embed)</button>
         </div>
       </div>
 
@@ -63,9 +62,9 @@
         <div class="small-actions">
           <button class="btn-small" onclick="savePage()">💾 Salvar</button>
           <button class="btn-small" onclick="previousPage()">◀ Anterior</button>
-          <button class="btn-small" onclick="openTab('data')">📅 Data</button>
+          <button class="btn-small" onclick="nextPage()">Próxima ▶</button>
         </div>
-        <div class="meta" id="pageMeta">Capítulo 1 • Página 12</div>
+        <div class="meta" id="pageMeta"></div>
       </div>
 
       <div class="panel" style="margin-top:12px">
@@ -74,121 +73,57 @@
       </div>
     </div>
 
-    <!-- TRADUÇÃO -->
-    <div id="traducao" class="panel" style="display:none;margin-top:16px">
-      <h2>Tradução — Informações do Projeto</h2>
-      <div class="info-box">
-        <p><strong>Equipe:</strong> Rafa + Comunidade</p>
-        <p><strong>Status:</strong> Ato 1 — em progresso</p>
-        <p><strong>Domínio:</strong> sem domínio (por enquanto)</p>
-        <p><strong>Licença:</strong> Trabalho de fã, sem fins lucrativos. Homestuck © Andrew Hussie</p>
-        <p class="muted">Observação: Em produção incluir página de termos, política de conteúdo e moderação.</p>
-      </div>
+    <!-- ABA TRADUÇÃO -->
+    <div id="traducao" class="panel" style="display:none">
+      <h2>Tradução — Informações</h2>
+      <p><strong>Equipe:</strong> Rafa + Comunidade</p>
+      <p><strong>Status:</strong> Ato 1 — em progresso</p>
+      <p><strong>Licença:</strong> Trabalho de fã sem fins lucrativos. Homestuck © Andrew Hussie</p>
     </div>
 
-    <!-- CONQUISTAS -->
-    <div id="conquistas" class="panel" style="display:none;margin-top:16px">
+    <!-- ABA CONQUISTAS -->
+    <div id="conquistas" class="panel" style="display:none">
       <h2>Conquistas & Fanartes</h2>
-      <div id="savedPopups">Nenhuma ainda</div>
-      <div style="margin-top:12px">
-        <h4>Fanartes enviadas</h4>
-        <div id="fanartList" class="forum"></div>
-      </div>
+      <div id="achievementsList">Nenhuma conquista ainda.</div>
+      <h4>Fanartes enviadas</h4>
+      <div id="fanartList" class="forum"></div>
     </div>
 
-    <!-- DATA -->
-    <div id="data" class="panel" style="display:none;margin-top:16px">
+    <!-- ABA DATA -->
+    <div id="data" class="panel" style="display:none">
       <h2>Data — Índice de páginas</h2>
-      <div id="indexList" class="post" style="padding:10px">
-        <div><a href="#" onclick="openPage(1);return false">Capítulo 1 — Página 1</a></div>
-        <div><a href="#" onclick="openPage(2);return false">Capítulo 1 — Página 2</a></div>
-        <div><a href="#" onclick="openPage(12);return false">Capítulo 1 — Página 12</a></div>
-      </div>
+      <div id="indexList" class="post"></div>
     </div>
 
-    <!-- TEMAS -->
-    <div id="temas" class="panel" style="display:none;margin-top:16px">
+    <!-- ABA TEMAS -->
+    <div id="temas" class="panel" style="display:none">
       <h2>Escolher Tema</h2>
       <div id="themeList" class="theme-buttons"></div>
-      <div id="adminThemes" style="margin-top:12px; display:none;">
-        <h4>Admin: Criar novo tema</h4>
-        <input type="text" id="themeName" placeholder="Nome do tema">
-        <input type="color" id="themeBg">
-        <input type="color" id="themeColor">
-        <button class="btn-main" onclick="createTheme()">Criar Tema</button>
-      </div>
     </div>
   </section>
 
   <aside class="side-section">
     <div class="info-box">
-      <h3>Informações do Projeto</h3>
-      <p><strong>Equipe:</strong> Rafa + Comunidade</p>
-      <p class="muted"><strong>Observação:</strong> Trabalho de fã para fãs — sem fins lucrativos.</p>
-    </div>
-
-    <div class="info-box">
-      <h4>Login / Perfil</h4>
-      <div style="display:flex;gap:8px">
-        <button class="btn-main" onclick="openModal('login')">Entrar</button>
-      </div>
-      <div style="margin-top:8px;font-size:13px;color:#666">
-        Para comentar, postar e salvar fanarts você precisa de conta.
-      </div>
-    </div>
-
-    <div class="info-box">
-      <h4>Conquistas salvas</h4>
-      <div id="savedPopups">Nenhuma ainda</div>
+      <h3>Informações</h3>
+      <p>Trabalho de fã para fãs — sem fins lucrativos.</p>
     </div>
 
     <div class="info-box">
       <h4>Comunidade / Fórum</h4>
-      <div style="font-size:13px;color:#444">
-        Espaço para postar desenhos, vídeos e notícias. Moderado.
-      </div>
-      <div style="margin-top:8px">
-        <button class="btn-small" onclick="openModal('newPost')">Novo post</button>
-      </div>
+      <button class="btn-small" onclick="openModal('community')">Abrir Fórum</button>
     </div>
   </aside>
 </main>
 
+<!-- Área rápida perfil -->
 <div class="profile-quick" id="profileQuick">
   <div id="pqContent">
     <strong>Sem conta</strong>
-    <small>Entre com e-mail</small>
+    <small>Crie um perfil</small>
   </div>
 </div>
 
-<!-- Modal Login -->
-<div id="loginModal" class="modal" style="display:none">
-  <div class="modal-content">
-    <h2>Login por e-mail</h2>
-    <input type="email" id="loginEmail" placeholder="Seu e-mail">
-    <button onclick="sendOtp()">Enviar código</button>
-    <input type="text" id="otpCode" placeholder="Código OTP">
-    <button onclick="verifyOtp()">Entrar</button>
-    <button onclick="closeModal('login')">Fechar</button>
-  </div>
-</div>
-
-<!-- Modal Nova Fanart -->
-<div id="newPostModal" class="modal" style="display:none">
-  <div class="modal-content">
-    <h3>Nova Fanart</h3>
-    <input type="text" id="postTitle" placeholder="Título">
-    <textarea id="postContent" placeholder="Descrição"></textarea>
-    <input type="url" id="postImage" placeholder="URL da imagem">
-    <div style="margin-top:8px">
-      <button class="btn-main" onclick="submitPost()">Publicar</button>
-      <button class="btn-small" onclick="closeModal('newPost')">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Supabase SDK + Script -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<!-- Scripts -->
 <script src="script.js"></script>
 </body>
 </html>
