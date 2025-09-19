@@ -248,4 +248,106 @@ async function loadUserAchievements() {
   `).join("");
 }
 
+async function submitPost() {
+  const title = document.getElementById("postTitle").value.trim();
+  const content = document.getElementById("postContent").value.trim();
+  const image_url = document.getElementById("postImage").value.trim();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    alert("Você precisa estar logado!");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("posts")
+    .insert([{ user_id: user.id, title, content, image_url }]);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao publicar.");
+  } else {
+    closeModal("newPost");
+    loadPosts();
+    unlockAchievement(user.id, "Primeira fanart"); // conquista automática 🎉
+  }
+}
+async function loadPosts() {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("id, title, content, image_url, created_at, user_id")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const list = document.getElementById("fanartList");
+  if (!list) return;
+
+  if (data.length === 0) {
+    list.innerHTML = "<p style='color:#666'>Nenhuma fanart ainda.</p>";
+    return;
+  }
+
+  list.innerHTML = data.map(p => `
+    <div class="post" style="margin-bottom:12px">
+      <h4>${p.title}</h4>
+      ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%;border-radius:8px;margin:6px 0">` : ""}
+      <p>${p.content ?? ""}</p>
+      <small style="color:#666">Publicado em ${new Date(p.created_at).toLocaleString()}</small>
+    </div>
+  `).join("");
+}
+async function loadPosts() {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("id, title, content, image_url, created_at, user_id")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const list = document.getElementById("fanartList");
+  if (!list) return;
+
+  if (data.length === 0) {
+    list.innerHTML = "<p style='color:#666'>Nenhuma fanart ainda.</p>";
+    return;
+  }
+
+  list.innerHTML = data.map(p => `
+    <div class="post" style="margin-bottom:12px">
+      <h4>${p.title}</h4>
+      ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%;border-radius:8px;margin:6px 0">` : ""}
+      <p>${p.content ?? ""}</p>
+      <small style="color:#666">Publicado em ${new Date(p.created_at).toLocaleString()}</small>
+    </div>
+  `).join("");
+}
+async function loadUserPosts(userId) {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("id, title, image_url, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("profileFanarts");
+  if (!container) return;
+
+  if (error || data.length === 0) {
+    container.innerHTML = "<p style='color:#666'>Nenhuma fanart enviada.</p>";
+    return;
+  }
+
+  container.innerHTML = data.map(p => `
+    <div style="margin-bottom:8px">
+      ${p.image_url ? `<img src="${p.image_url}" style="width:60px;height:60px;object-fit:cover;border-radius:6px">` : ""}
+      <span>${p.title}</span>
+    </div>
+  `).join("");
+}
 
