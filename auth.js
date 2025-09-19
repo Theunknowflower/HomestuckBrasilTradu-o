@@ -1,4 +1,19 @@
+
+
 // auth.js
+// LOGIN com OTP (link mágico enviado por e-mail)
+async function loginWithOTP() {
+  const email = prompt("Digite seu e-mail para receber o link mágico:");
+  if (!email) return;
+
+  const { error } = await supabase.auth.signInWithOtp({ email });
+
+  if (error) {
+    alert("Erro ao enviar link mágico: " + error.message);
+  } else {
+    alert("Verifique seu e-mail! Um link mágico foi enviado 🚀");
+  }
+}
 
 // Abre e fecha modais
 function openModal(id) {
