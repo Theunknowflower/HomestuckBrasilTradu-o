@@ -185,3 +185,67 @@ async function saveProfile() {
     loadProfile(); // atualiza header
   }
 }
+
+async function unlockAchievement(userId, achievementName) {
+  // pega a conquista pelo nome
+  const { data: achievement } = await supabase
+    .from("achievements")
+    .select("id")
+    .eq("name", achievementName)
+    .single();
+
+  if (!achievement) {
+    console.warn("Conquista não encontrada:", achievementName);
+    return;
+  }
+
+  // insere no user_achievements (se já tiver, ignora)
+  const { error } = await supabase
+    .from("user_achievements")
+    .insert([{ user_id: userId, achievement_id: achievement.id }])
+    .select()
+    .single();
+
+  if (error && error.code !== "23505") { // 23505 = unique violation
+    console.error("Erro ao desbloquear conquista:", error);
+  } else {
+    console.log("Conquista desbloqueada:", achievementName);
+    loadUserAchievements(); // recarregar no layout
+  }
+}
+if (!error) {
+  textarea.value = "";
+  loadComments();
+  if (user) unlockAchievement(user.id, "Primeiro comentário");
+}
+async function loadUserAchievements() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    document.getElementById("savedPopups").innerHTML = "Nenhuma — faça login!";
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("user_achievements")
+    .select("unlocked_at, achievements(name, icon_url)")
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  if (data.length === 0) {
+    document.getElementById("savedPopups").innerHTML = "Nenhuma ainda 😢";
+    return;
+  }
+
+  document.getElementById("savedPopups").innerHTML = data.map(ua => `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      ${ua.achievements.icon_url ? `<img src="${ua.achievements.icon_url}" style="width:20px;height:20px">` : "🏆"}
+      <span>${ua.achievements.name}</span>
+    </div>
+  `).join("");
+}
+
+
