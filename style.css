@@ -104,3 +104,37 @@ main {
   width: 50px;
   height: 50px;
 }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: rgba(0,0,0,0.8);
+  border: 2px solid var(--accent);
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  font-family: 'Press Start 2P', cursive;
+  color: var(--fg);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.modal-content button {
+  display: block;
+  margin: 8px auto;
+  padding: 10px;
+  width: 100%;
+}
