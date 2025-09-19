@@ -195,6 +195,45 @@
   }
 
   loadComments();
+
+// escutar novos comentários em tempo real
+function subscribeToComments() {
+  supabase
+    .channel('comments-channel')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'comments',
+      },
+      (payload) => {
+        console.log('Novo comentário recebido:', payload.new);
+
+        const list = document.getElementById("commentList");
+        if (list) {
+          const c = payload.new;
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.style.marginBottom = "8px";
+          div.innerHTML = `
+            <div style="font-size:13px;color:#666">
+              <strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(c.created_at)}
+            </div>
+            <div>${c.text}</div>
+          `;
+          // adiciona no topo
+          list.prepend(div);
+        }
+      }
+    )
+    .subscribe();
+}
+
+// inicialização
+loadComments();
+subscribeToComments();
+
 </script>
 
 <!-- JS do site -->
@@ -317,6 +356,8 @@ async function loadComments() {
     </div>
   `;
 }
+
+
 
 </body>
 </html>
