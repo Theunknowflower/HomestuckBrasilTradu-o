@@ -162,6 +162,25 @@
 
 <script src="assets/js/script.js"></script>
 
+<div class="login-box">
+  <h4>Entrar</h4>
+  <input type="email" id="loginEmail" placeholder="Seu e-mail">
+  <input type="password" id="loginPass" placeholder="Senha">
+  <button onclick="signInEmail(
+    document.getElementById('loginEmail').value,
+    document.getElementById('loginPass').value
+  )">Entrar</button>
+</div>
+
+<div class="signup-box">
+  <h4>Criar conta</h4>
+  <input type="email" id="signupEmail" placeholder="Seu e-mail">
+  <input type="password" id="signupPass" placeholder="Senha (6+ caracteres)">
+  <button onclick="signUpEmail(
+    document.getElementById('signupEmail').value,
+    document.getElementById('signupPass').value
+  )">Cadastrar</button>
+</div>
 
 </body>
 </html>
