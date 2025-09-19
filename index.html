@@ -406,6 +406,13 @@ async function loadComments() {
   <h3>Minhas Fanarts</h3>
   <div id="profileFanarts">Carregando...</div>
 </div>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  // inicializar supabase
+  const SUPABASE_URL = "https://vhopcdzemdiqtvrwmqqo.supabase.co"; // sua URL
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZob3BjZHplbWRpcXR2cndtcXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMjc2MTUsImV4cCI6MjA3MzgwMzYxNX0.j8podlPF9lBz2LfzDq1Z0NYF2QA3tQRK-tOIalWz2sI"; // substitua pela anon key do seu projeto
+  window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
 
 </body>
 </html>
