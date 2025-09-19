@@ -1,64 +1,28 @@
-// comments.js
+// profile.js
 
-async function loadComments() {
-  const { data, error } = await supabase
-    .from("comments")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  const container = document.getElementById("commentSection");
-
-  if (error) {
-    container.innerHTML = "<div style='color:red'>Erro ao carregar comentários.</div>";
-    console.error(error);
-    return;
-  }
-
-  container.innerHTML = data.map(c => `
-    <div class="comment">
-      <strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(c.created_at)}<br>
-      ${c.text}
-    </div>
-  `).join("");
-}
-
-async function addComment() {
-  const textarea = document.getElementById("newComment");
-  const text = textarea.value.trim();
-  if (!text) return;
-
+async function loadProfile() {
   const { data: { user } } = await supabase.auth.getUser();
-  const username = user ? user.email : "Convidado";
+  const container = document.getElementById("profile");
 
-  const { error } = await supabase.from("comments").insert([{ user: username, text }]);
-
-  if (error) {
-    console.error(error);
+  if (!user) {
+    container.innerHTML = "<strong>Não logado</strong>";
     return;
   }
 
-  textarea.value = "";
-  loadComments();
-}
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("username, bio, avatar_url")
+    .eq("id", user.id)
+    .single();
 
-function subscribeToComments() {
-  supabase.channel("comments-channel")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "comments" }, payload => {
-      const list = document.getElementById("commentSection");
-      const c = payload.new;
-      const div = document.createElement("div");
-      div.innerHTML = `<strong>${c.user ?? "Anônimo"}</strong> — ${timeAgo(c.created_at)}<br>${c.text}`;
-      list.prepend(div);
-    })
-    .subscribe();
-}
+  if (error || !data) {
+    container.innerHTML = `<strong>${user.email}</strong><br><small>Perfil não configurado</small>`;
+    return;
+  }
 
-function timeAgo(dateString) {
-  const date = new Date(dateString);
-  const diff = (new Date() - date) / 1000;
-  if (diff < 60) return "agora";
-  if (diff < 3600) return Math.floor(diff / 60) + " min atrás";
-  if (diff < 86400) return Math.floor(diff / 3600) + " h atrás";
-  return date.toLocaleDateString("pt-BR");
+  container.innerHTML = `
+    <img src="${data.avatar_url ?? 'https://i.ibb.co/YPXkTZK/default-avatar.png'}" style="width:50px;border-radius:50%">
+    <br><strong>${data.username ?? user.email}</strong>
+    <br><small>${data.bio ?? "Sem bio"}</small>
+  `;
 }
-
