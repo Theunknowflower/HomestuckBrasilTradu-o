@@ -449,6 +449,14 @@ async function loadComments() {
 
   container.innerHTML = `
 
+(async () => {
+  const { data, error } = await supabase.from("comments").select("count").limit(1);
+  if (error) {
+    console.error("Erro Supabase:", error);
+  } else {
+    console.log("Supabase conectado ✅", data);
+  }
+})();
 
 
 // inicializações principais
