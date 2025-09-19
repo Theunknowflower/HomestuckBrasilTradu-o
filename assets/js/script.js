@@ -188,3 +188,11 @@ window.onload = () => {
   loadFanarts();
   loadAchievements();
 };
+window.openTab = openTab;
+window.nextPage = nextPage;
+window.previousPage = previousPage;
+window.signInEmail = signInEmail;
+window.createTheme = createTheme;
+window.submitPost = submitPost;
+window.toggleEmbed = toggleEmbed;
+window.savePage = savePage;
