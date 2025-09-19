@@ -257,4 +257,10 @@ document.addEventListener("DOMContentLoaded", () => {
   loadComments(1);
 });
 
+function openTab(id) {
+  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+}
 
