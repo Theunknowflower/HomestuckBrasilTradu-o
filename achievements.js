@@ -1,18 +1,32 @@
-// importa cliente do Supabase
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// achievements.js
 
-// inicializa
-const SUPABASE_URL = "https://vhopcdzemdiqtvrwmqqo.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZob3BjZHplbWRpcXR2cndtcXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMjc2MTUsImV4cCI6MjA3MzgwMzYxNX0.j8podlPF9lBz2LfzDq1Z0NYF2QA3tQRK-tOIalWz2sI"; // copia da dashboard
+async function loadAchievements() {
+  const { data: { user } } = await supabase.auth.getUser();
+  const container = document.getElementById("achievements");
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (!user) {
+    container.innerHTML = "Entre para ver conquistas.";
+    return;
+  }
 
-import { supabase, getUser } from "./supabase.js";
+  const { data, error } = await supabase
+    .from("user_achievements")
+    .select("achievements(name, icon_url)")
+    .eq("user_id", user.id);
 
-export async function unlockAchievement(achievementName) {
-  const user = await getUser();
-  if (!user) return;
+  if (error) {
+    container.innerHTML = "Erro ao carregar conquistas.";
+    return;
+  }
 
+  container.innerHTML = data.length
+    ? data.map(a => `
+      <div> ${a.achievements.icon_url ? `<img src="${a.achievements.icon_url}" width="20">` : "🏆"} ${a.achievements.name}</div>
+    `).join("")
+    : "Nenhuma conquista ainda.";
+}
+
+async function unlockAchievement(userId, achievementName) {
   const { data: achievement } = await supabase
     .from("achievements")
     .select("id")
@@ -21,22 +35,7 @@ export async function unlockAchievement(achievementName) {
 
   if (!achievement) return;
 
-  const { error } = await supabase
-    .from("user_achievements")
-    .insert([{ user_id: user.id, achievement_id: achievement.id }]);
-
-  if (error && error.code !== "23505") throw error;
-}
-
-export async function loadUserAchievements() {
-  const user = await getUser();
-  if (!user) return [];
-
-  const { data, error } = await supabase
-    .from("user_achievements")
-    .select("unlocked_at, achievements(name, icon_url)")
-    .eq("user_id", user.id);
-
-  if (error) throw error;
-  return data;
+  await supabase.from("user_achievements").insert([{ 
+    user_id: userId, achievement_id: achievement.id 
+  }]);
 }
