@@ -1,3 +1,129 @@
+// =======================
+// CONFIG SUPABASE
+// =======================
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://vhopcdzemdiqtvrwmqqo.supabase.co";
+const SUPABASE_KEY = "SUA_CHAVE_PUBLIC_ANON";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =======================
+// LOGIN / LOGOUT
+// =======================
+async function updateUserUI() {
+  const { data } = await supabase.auth.getUser();
+  const user = data?.user;
+  const userInfo = document.getElementById("user-info");
+  const authBtn = document.getElementById("auth-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+
+  if (user) {
+    userInfo.textContent = user.email;
+    authBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+  } else {
+    userInfo.textContent = "Usuário";
+    authBtn.style.display = "inline-block";
+    logoutBtn.style.display = "none";
+  }
+}
+
+async function signIn() {
+  const email = prompt("Digite seu e-mail:");
+  const password = prompt("Digite sua senha:");
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) alert(error.message);
+  await updateUserUI();
+}
+
+async function signUp() {
+  const email = prompt("Digite seu e-mail:");
+  const password = prompt("Crie sua senha:");
+
+  const { error } = await supabase.auth.signUp({ email, password });
+  if (error) alert(error.message);
+  else alert("Conta criada! Verifique seu e-mail.");
+  await updateUserUI();
+}
+
+async function signOut() {
+  await supabase.auth.signOut();
+  await updateUserUI();
+}
+
+// =======================
+// LEITURA DAS PÁGINAS
+// =======================
+let currentPage = 1;
+
+async function loadPage(num) {
+  const { data, error } = await supabase
+    .from("pages")
+    .select("*")
+    .eq("id", num)
+    .single();
+
+  if (error || !data) {
+    document.getElementById("page-content").innerHTML = "<p>Fim!</p>";
+    return;
+  }
+
+  document.getElementById("page-content").innerHTML = `
+    <img src="${data.image_url}" alt="Página">
+    <p>${data.text || ""}</p>
+  `;
+
+  currentPage = data.id;
+
+  // 🔑 Desbloqueia conquista na primeira página
+  if (currentPage === 1) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) unlockAchievement(user.id, "Primeira página");
+  }
+}
+
+async function nextPage() {
+  await loadPage(currentPage + 1);
+}
+async function prevPage() {
+  if (currentPage > 1) await loadPage(currentPage - 1);
+}
+
+// =======================
+// CONQUISTAS
+// =======================
+async function unlockAchievement(userId, achievementName) {
+  const { data: achievement } = await supabase
+    .from("achievements")
+    .select("id")
+    .eq("name", achievementName)
+    .single();
+
+  if (!achievement) return;
+
+  await supabase.from("user_achievements").insert({
+    user_id: userId,
+    achievement_id: achievement.id,
+  });
+
+  alert("🎉 Conquista desbloqueada: " + achievementName);
+}
+
+// =======================
+// EVENTOS
+// =======================
+document.getElementById("auth-btn").addEventListener("click", () => {
+  const option = confirm("Já tem conta? OK = Entrar | Cancelar = Criar");
+  if (option) signIn();
+  else signUp();
+});
+
+document.getElementById("logout-btn").addEventListener("click", signOut);
+
+// Carrega a primeira página ao abrir
+loadPage(1);
+updateUserUI();
 
 // importa cliente do Supabase
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
