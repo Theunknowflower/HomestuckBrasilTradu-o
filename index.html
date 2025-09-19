@@ -35,8 +35,21 @@
         <div class="user-avatar">U</div>
         <div style="color:var(--branco);opacity:.95" id="headerUser">Convidado</div>
       </div>
-      <div style="margin-top:6px">
-        <button class="btn-small" onclick="signInEmail()">Entrar com Email</button>
+      <!-- Formulário de login/cadastro -->
+      <div style="margin-top:6px; display:flex; flex-direction:column; gap:4px;">
+        <input type="email" id="loginEmail" placeholder="E-mail">
+        <input type="password" id="loginPass" placeholder="Senha">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-small" onclick="signInEmail(
+            document.getElementById('loginEmail').value,
+            document.getElementById('loginPass').value
+          )">Entrar</button>
+          <button class="btn-small" onclick="signUpEmail(
+            document.getElementById('loginEmail').value,
+            document.getElementById('loginPass').value
+          )">Cadastrar</button>
+          <button class="btn-small" onclick="signOut()">Sair</button>
+        </div>
       </div>
     </div>
   </div>
@@ -128,9 +141,6 @@
 
     <div class="info-box">
       <h4>Criar conta / Perfil</h4>
-      <div style="display:flex;gap:8px">
-        <button class="btn-main" onclick="signInEmail()">Entrar com Email</button>
-      </div>
       <div style="margin-top:8px;font-size:13px;color:#666">
         Para comentar, postar e salvar fanarts você precisa de conta.
       </div>
@@ -160,23 +170,10 @@
   </div>
 </div>
 
+<!-- Scripts -->
 <script src="assets/js/script.js"></script>
-
-<div style="margin-top:6px">
-  <input type="email" id="loginEmail" placeholder="E-mail">
-  <input type="password" id="loginPass" placeholder="Senha">
-  <button class="btn-small" onclick="signInEmail(
-    document.getElementById('loginEmail').value,
-    document.getElementById('loginPass').value
-  )">Entrar</button>
-  <button class="btn-small" onclick="signUpEmail(
-    document.getElementById('loginEmail').value,
-    document.getElementById('loginPass').value
-  )">Cadastrar</button>
-  <button class="btn-small" onclick="signOut()">Sair</button>
-</div>
-
-
+<script src="assets/js/auth.js"></script>
 
 </body>
 </html>
+
