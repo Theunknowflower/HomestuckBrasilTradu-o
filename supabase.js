@@ -350,4 +350,83 @@ async function loadUserPosts(userId) {
     </div>
   `).join("");
 }
+function subscribeToPosts() {
+  supabase
+    .channel('posts-channel')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'posts',
+      },
+      (payload) => {
+        console.log("Nova fanart recebida:", payload.new);
+
+        const list = document.getElementById("fanartList");
+        if (!list) return;
+
+        const p = payload.new;
+        const div = document.createElement("div");
+        div.className = "post";
+        div.style.marginBottom = "12px";
+        div.innerHTML = `
+          <h4>${p.title}</h4>
+          ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%;border-radius:8px;margin:6px 0">` : ""}
+          <p>${p.content ?? ""}</p>
+          <small style="color:#666">Publicado em ${new Date(p.created_at).toLocaleString()}</small>
+        `;
+        // adiciona no topo
+        list.prepend(div);
+      }
+    )
+    .subscribe();
+}
+
+
+
+function subscribeToUserPosts(userId) {
+  supabase
+    .channel('user-posts-' + userId)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'posts',
+        filter: `user_id=eq.${userId}`
+      },
+      (payload) => {
+        const container = document.getElementById("profileFanarts");
+        if (!container) return;
+
+        const p = payload.new;
+        const div = document.createElement("div");
+        div.style.marginBottom = "8px";
+        div.innerHTML = `
+          ${p.image_url ? `<img src="${p.image_url}" style="width:60px;height:60px;object-fit:cover;border-radius:6px">` : ""}
+          <span>${p.title}</span>
+        `;
+        container.prepend(div);
+      }
+    )
+    .subscribe();
+}
+loadUserPosts(user.id);
+subscribeToUserPosts(user.id);
+
+
+
+
+
+
+
+
+
+// inicializações principais
+loadComments();
+subscribeToComments();
+
+loadPosts();
+subscribeToPosts();
 
