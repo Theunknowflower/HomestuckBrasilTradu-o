@@ -6,105 +6,77 @@ const API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_EMAIL = "Homestucknerdsbrasil@gmail.com";
+// ======================
+// PÁGINAS
+// ======================
+let pages = [];
+let currentPage = 1;
 
-// ======================
-// Navegação entre abas
-// ======================
-function openTab(id) {
-  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
-  document.getElementById(id).style.display = "block";
+fetch("data/pages.json")
+  .then(r => r.json())
+  .then(data => {
+    pages = data;
+    loadProgress(); // tenta abrir última página salva
+    loadIndex();
+  });
+
+function openPage(num) {
+  const page = pages.find(p => p.page === num);
+  if (!page) return;
+  currentPage = num;
+
+  document.getElementById("readerImg").src = page.type === "image" ? page.src : "";
+  document.getElementById("pageEmbed").src = page.type === "swf" ? page.src : "";
+  document.getElementById("pageMeta").innerText = `Capítulo ${page.chapter} • Página ${page.page}`;
+}
+
+function previousPage() { if (currentPage > 1) openPage(currentPage - 1); }
+function nextPage() { if (currentPage < pages.length) openPage(currentPage + 1); }
+function toggleEmbed() {
+  const wrap = document.getElementById("embedWrap");
+  wrap.style.display = wrap.style.display === "none" ? "block" : "none";
+}
+
+function loadIndex() {
+  const list = document.getElementById("indexList");
+  list.innerHTML = pages.map(p => 
+    `<div><a href="#" onclick="openPage(${p.page});return false">Capítulo ${p.chapter} — Página ${p.page}</a></div>`
+  ).join("");
 }
 
 // ======================
-// Modais
+// LOGIN (OTP EMAIL)
 // ======================
-function openModal(id) {
-  document.getElementById(id + "Modal").style.display = "flex";
-}
-function closeModal(id) {
-  document.getElementById(id + "Modal").style.display = "none";
-}
-
-// ======================
-// Login por OTP (e-mail)
-// ======================
-async function sendOtp() {
-  const email = document.getElementById("loginEmail").value.trim();
-  if (!email) return alert("Digite seu e-mail!");
+async function signInEmail() {
+  const email = prompt("Digite seu email:");
+  if (!email) return;
   const { error } = await supabase.auth.signInWithOtp({ email });
   if (error) alert("Erro: " + error.message);
-  else alert("Código enviado para " + email);
+  else alert("Um link foi enviado para seu email.");
 }
-async function verifyOtp() {
-  const email = document.getElementById("loginEmail").value.trim();
-  const token = document.getElementById("otpCode").value.trim();
-  if (!email || !token) return alert("Digite o e-mail e código!");
-  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
-  if (error) alert("Erro: " + error.message);
-  else {
-    closeModal("login");
-    loadProfile();
-  }
-}
+
 async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
 
 // ======================
-// Perfil + conquistas
-// ======================
-async function loadProfile() {
-  const user = await getCurrentUser();
-  const headerUser = document.getElementById("headerUser");
-  if (!user) {
-    headerUser.innerText = "Convidado";
-    document.getElementById("pqContent").innerHTML = "<strong>Sem conta</strong><br><small>Entre com e-mail</small>";
-    return;
-  }
-  headerUser.innerText = user.email;
-  document.getElementById("pqContent").innerHTML = `<strong>${user.email}</strong>`;
-  if (user.email === ADMIN_EMAIL) {
-    document.getElementById("adminThemes").style.display = "block";
-  }
-  loadUserAchievements();
-}
-async function loadUserAchievements() {
-  const user = await getCurrentUser();
-  if (!user) return;
-  const { data, error } = await supabase
-    .from("user_achievements")
-    .select("achievements(name, icon_url)")
-    .eq("user_id", user.id);
-  const list = document.getElementById("savedPopups");
-  if (error || !data.length) {
-    list.innerHTML = "Nenhuma ainda 😢";
-    return;
-  }
-  list.innerHTML = data.map(a => `
-    <div style="display:flex;align-items:center;gap:6px">
-      ${a.achievements.icon_url ? `<img src="${a.achievements.icon_url}" width="20">` : "🏆"}
-      <span>${a.achievements.name}</span>
-    </div>
-  `).join("");
-}
-
-// ======================
-// Leitura + progresso
+// PROGRESSO
 // ======================
 async function savePage() {
   const user = await getCurrentUser();
-  if (!user) return alert("Faça login para salvar progresso!");
-  const pageMeta = document.getElementById("pageMeta").innerText;
-  const match = pageMeta.match(/Página (\d+)/);
-  const pageNumber = match ? parseInt(match[1]) : 1;
+  if (!user) {
+    alert("Faça login para salvar progresso!");
+    return;
+  }
   await supabase.from("progress").upsert({
     user_id: user.id,
-    page: pageNumber,
+    page: currentPage,
     updated_at: new Date().toISOString()
   });
   alert("Progresso salvo!");
 }
+
 async function loadProgress() {
   const user = await getCurrentUser();
   if (!user) return;
@@ -114,100 +86,105 @@ async function loadProgress() {
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false })
     .limit(1);
-  if (data?.length) openPage(data[0].page);
+  if (data && data.length > 0) openPage(data[0].page);
 }
-function openPage(page) {
-  document.getElementById("readerImg").src = `assets/page-${page}.png`;
-  document.getElementById("pageMeta").innerText = `Capítulo 1 — Página ${page}`;
-}
-function previousPage() { /* lógica similar */ }
-function nextPage() { /* lógica similar */ }
 
 // ======================
-// Comentários
+// COMENTÁRIOS
 // ======================
 async function loadComments() {
-  const { data, error } = await supabase.from("comments").select("*").order("created_at", { ascending: false });
-  const section = document.getElementById("commentSection");
-  if (error) return section.innerHTML = "Erro ao carregar.";
-  section.innerHTML = `
-    <textarea id="newComment" placeholder="Escreva..."></textarea>
-    <button onclick="addComment()">Enviar</button>
-    <div id="commentList">${data.map(c => `<p><b>${c.user}</b>: ${c.text}</p>`).join("")}</div>
+  const { data, error } = await supabase
+    .from("comments")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("commentSection");
+  if (error) {
+    container.innerHTML = "Erro ao carregar comentários.";
+    return;
+  }
+
+  container.innerHTML = `
+    <div id="commentForm" style="margin-bottom:12px">
+      <textarea id="newComment" placeholder="Escreva..." style="width:100%;height:60px"></textarea>
+      <button onclick="addComment()">Enviar</button>
+    </div>
+    <div id="commentList">
+      ${data.map(c => `<div><strong>${c.user}</strong>: ${c.text}</div>`).join("")}
+    </div>
   `;
 }
+
 async function addComment() {
-  const text = document.getElementById("newComment").value.trim();
+  const textarea = document.getElementById("newComment");
+  const text = textarea.value.trim();
   if (!text) return;
   const user = await getCurrentUser();
-  await supabase.from("comments").insert([{ user: user?.email || "Anônimo", text }]);
-  loadComments();
+  const username = user ? user.email : "Convidado";
+  await supabase.from("comments").insert([{ user: username, text }]);
+  textarea.value = "";
 }
+
 function subscribeToComments() {
-  supabase.channel("comments")
+  supabase.channel("comments-channel")
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "comments" },
       payload => {
         const list = document.getElementById("commentList");
+        if (!list) return;
         const c = payload.new;
-        list.innerHTML = `<p><b>${c.user}</b>: ${c.text}</p>` + list.innerHTML;
-      }).subscribe();
+        const div = document.createElement("div");
+        div.innerHTML = `<strong>${c.user}</strong>: ${c.text}`;
+        list.prepend(div);
+      }
+    ).subscribe();
 }
 
 // ======================
-// Fanarts / Fórum
+// FANARTS / FÓRUM
 // ======================
+async function loadFanarts() {
+  const { data } = await supabase
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const list = document.getElementById("fanartList");
+  list.innerHTML = data.length
+    ? data.map(p => `<div><h4>${p.title}</h4><img src="${p.image_url}" style="max-width:100%"><p>${p.content}</p></div>`).join("")
+    : "Nenhuma fanart ainda.";
+}
+
 async function submitPost() {
   const user = await getCurrentUser();
   if (!user) return alert("Faça login!");
-  const title = document.getElementById("postTitle").value;
-  const content = document.getElementById("postContent").value;
-  const image = document.getElementById("postImage").value;
-  await supabase.from("posts").insert([{ user_id: user.id, title, content, image_url: image }]);
-  loadPosts();
-  closeModal("newPost");
-}
-async function loadPosts() {
-  const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
-  const list = document.getElementById("fanartList");
-  list.innerHTML = data.map(p => `
-    <div class="post">
-      <h4>${p.title}</h4>
-      ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%">` : ""}
-      <p>${p.content ?? ""}</p>
-    </div>
-  `).join("");
+  const title = prompt("Título da fanart:");
+  const url = prompt("URL da imagem:");
+  await supabase.from("posts").insert([{ user_id: user.id, title, image_url: url }]);
+  loadFanarts();
 }
 
 // ======================
-// Temas
+// CONQUISTAS
 // ======================
-async function loadThemes() {
-  const { data } = await supabase.from("themes").select("*");
-  const list = document.getElementById("themeList");
-  list.innerHTML = data.map(t =>
-    `<button onclick="applyTheme('${t.bg}','${t.color}')">${t.name}</button>`
-  ).join("");
-}
-function applyTheme(bg, color) {
-  document.documentElement.style.setProperty("--bg-image", `url('${bg}')`);
-  document.documentElement.style.setProperty("--accent", color);
-}
-async function createTheme() {
+async function loadAchievements() {
   const user = await getCurrentUser();
-  if (user?.email !== ADMIN_EMAIL) return alert("Somente admin pode criar tema!");
-  const name = document.getElementById("themeName").value;
-  const bg = document.getElementById("themeBg").value;
-  const color = document.getElementById("themeColor").value;
-  await supabase.from("themes").insert([{ name, bg, color }]);
-  loadThemes();
+  if (!user) return;
+  const { data } = await supabase
+    .from("user_achievements")
+    .select("achievements(name,icon_url)")
+    .eq("user_id", user.id);
+  const list = document.getElementById("achievementsList");
+  list.innerHTML = data.length
+    ? data.map(a => `<div>🏆 ${a.achievements.name}</div>`).join("")
+    : "Nenhuma conquista.";
 }
 
 // ======================
-// Inicialização
+// INICIALIZAÇÃO
 // ======================
-loadProfile();
-loadProgress();
-loadComments();
-subscribeToComments();
-loadPosts();
-loadThemes();
+window.onload = () => {
+  loadComments();
+  subscribeToComments();
+  loadFanarts();
+  loadAchievements();
+};
