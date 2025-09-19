@@ -1,165 +1,77 @@
 
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Homestuck Brasil</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <style>
- <script src="js/themes.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    loadProfile();
-    loadCommunityPosts();
-    loadComments();
-    loadAchievements();
-    loadThemes(); // carrega temas também
-  });
-</script>
-
-
-   body {
-      font-family: 'Press Start 2P', cursive;
-      background: url('wallpapers/default.png') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background: #111;
-      padding: 10px;
-      text-align: center;
-      border-bottom: 3px solid #0f0;
-    }
-
-    header h1 {
-      font-size: 16px;
-      margin: 0;
-      color: #0f0;
-    }
-
-    .container {
-      padding: 10px;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    .card {
-      background: rgba(0,0,0,0.7);
-      border: 2px solid #0f0;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 12px;
-    }
-
-    button {
-      font-family: 'Press Start 2P', cursive;
-      background: #0f0;
-      color: #000;
-      border: none;
-      padding: 8px 12px;
-      cursor: pointer;
-      margin: 4px 0;
-    }
-
-    button:hover {
-      background: #fff;
-      color: #000;
-    }
-
-    input, textarea {
-      font-family: 'Press Start 2P', cursive;
-      width: 100%;
-      margin: 5px 0;
-      padding: 5px;
-      border: 1px solid #0f0;
-      background: #111;
-      color: #0f0;
-    }
-
-    img {
-      max-width: 100%;
-      border-radius: 5px;
-      margin-top: 5px;
-    }
-
-    .achievement {
-      border-left: 5px solid gold;
-      padding: 5px;
-      margin: 5px 0;
-      background: rgba(255,215,0,0.1);
-    }
-
-    footer {
-      text-align: center;
-      padding: 10px;
-      font-size: 10px;
-      background: #111;
-      border-top: 3px solid #0f0;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Header -->
   <header>
-    <h1>Homestuck Brasil </h1>
-    <button onclick="signInWithGoogle()">Login</button>
-    <button onclick="signOut()">Sair</button>
+    <div class="logo">
+      <h1>HOMESTUCK</h1>
+      <p>TRADUÇÃO DE FÃ</p>
+    </div>
+    <div class="user-area">
+      <span id="user-info">Usuário</span>
+      <button id="auth-btn">Entrar</button>
+      <button id="logout-btn" style="display:none;">Sair</button>
+    </div>
   </header>
 
-  <div class="container">
+  <!-- Menu -->
+  <nav>
+    <button onclick="loadPage(1)">LER</button>
+    <button>TRADUÇÃO</button>
+    <button>CONQUISTAS</button>
+    <button>DATA</button>
+  </nav>
 
-    <!-- Perfil -->
-    <div id="profileBox" class="card">
-      <h3>Perfil</h3>
-      <p>Carregando...</p>
+  <!-- Main -->
+  <main>
+    <!-- Área de leitura -->
+    <section id="reader" class="card">
+      <div id="page-content" class="page-box">
+        <p>Carregando página...</p>
+      </div>
+      <div class="controls">
+        <button onclick="prevPage()">Anterior</button>
+        <button onclick="savePage()">Salvar</button>
+        <button onclick="nextPage()">Próxima</button>
+      </div>
+    </section>
+
+    <!-- Info lateral -->
+    <aside class="card" id="project-info">
+      <h3>Informações do Projeto</h3>
+      <p><b>Equipe:</b> Rafa + Comunidade</p>
+      <p><b>Status:</b> Ato 1 — em progresso</p>
+      <p><b>Domínio:</b> em breve (ex: seudominio.com.br)</p>
+      <p><b>Licença:</b> Trabalho de fã, sem fins lucrativos.</p>
+      <small>Homestuck © Andrew Hussie</small>
+    </aside>
+  </main>
+
+  <!-- Comentários -->
+  <section id="comments" class="card">
+    <h3>Comentários</h3>
+    <textarea id="commentBox" placeholder="Escreva seu comentário..."></textarea>
+    <button onclick="sendComment()">Enviar</button>
+    <div id="commentList"></div>
+  </section>
+
+  <!-- Conquistas -->
+  <section id="achievements" class="card">
+    <h3>Conquistas</h3>
+    <div id="achievements-list">
+      <div class="achievement">
+        <img src="assets/conquista1.png" alt="Conquista">
+        <p><b>Primeira página</b><br>Leu à primeira página</p>
+      </div>
     </div>
-
-    <!-- Conquistas -->
-    <div id="achievementsList" class="card">
-      <h3>🏆 Conquistas</h3>
-      <p>Nenhuma conquista desbloqueada ainda.</p>
-    </div>
-
-    <!-- Criar post -->
-    <div class="card">
-      <h3>Nova Fanart/Post</h3>
-      <input type="text" id="postTitle" placeholder="Título">
-      <textarea id="postContent" placeholder="Escreva algo..."></textarea>
-      <input type="text" id="postImage" placeholder="URL da imagem (opcional)">
-      <button onclick="submitPost()">Publicar</button>
-    </div>
-
-    <!-- Posts da comunidade -->
-    <div id="communityPosts" class="card">
-      <h3>🎨 Comunidade</h3>
-      <p>Carregando posts...</p>
-    </div>
-
-    <!-- Comentários -->
-    <div class="card">
-      <h3>💬 Comentários</h3>
-      <textarea id="newComment" placeholder="Escreva um comentário..."></textarea>
-      <button onclick="addComment()">Enviar</button>
-      <div id="commentList"></div>
-    </div>
-
-<!-- Temas -->
-<div id="themesBox" class="card">
-  <h3>🎨 Escolher Tema</h3>
-  <select id="themeSelector" onchange="applyTheme(this.value)">
-    <option value="">Selecione um tema</option>
-  </select>
-</div>
-
-  </div>
-
-  <footer>
-    <p>Homestuck Brasil Tradução © 2025</p>
-  </footer>
+  </section>
 
   <!-- Supabase + scripts -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
