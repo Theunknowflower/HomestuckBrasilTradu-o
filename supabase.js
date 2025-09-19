@@ -419,7 +419,35 @@ subscribeToUserPosts(user.id);
 
 
 
+// função para formatar data em "há X tempo"
+function timeAgo(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = (now - date) / 1000; // segundos
 
+  if (diff < 60) return "agora mesmo";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min atrás`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} h atrás`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)} dias atrás`;
+  return date.toLocaleDateString("pt-BR");
+}
+
+// renderizar comentários
+async function loadComments() {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("commentSection");
+
+  if (error) {
+    container.innerHTML = "<div style='color:red'>Erro ao carregar comentários.</div>";
+    console.error(error);
+    return;
+  }
+
+  container.innerHTML = `
 
 
 
