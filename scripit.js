@@ -23,52 +23,113 @@ async function loginWithOTP() {
   alert("Link enviado! Confira seu e-mail para entrar.");
 }
 
-// =========================
-// LOGIN COM USUÁRIO + SENHA
-// =========================
+// Inicializar Supabase
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Tabs
+function openTab(id) {
+  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+}
+
+// ================= LOGIN =================
+async function loginWithOTP() {
+  const email = prompt("Digite seu e-mail:");
+  const { error } = await supabase.auth.signInWithOtp({ email });
+  if (error) alert(error.message); else alert("Link enviado! Verifique seu e-mail.");
+}
 async function loginWithPassword() {
-  const email = prompt("Digite seu e-mail:");
-  const password = prompt("Digite sua senha:");
-
-  if (!email || !password) return;
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    alert("Erro ao logar: " + error.message);
-    return;
-  }
-
-  user = data.user;
-  updateUIAfterLogin();
+  const email = prompt("Email:");
+  const password = prompt("Senha:");
+  const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) alert(error.message); else updateUser(data.user);
 }
-
-// =========================
-// CADASTRO COM USUÁRIO + SENHA
-// =========================
 async function signUpWithPassword() {
-  const email = prompt("Digite seu e-mail:");
-  const password = prompt("Crie uma senha (mínimo 6 caracteres):");
+  const email = prompt("Email:");
+  const password = prompt("Senha:");
+  const { error } = await supabase.auth.signUp({ email, password });
+  if (error) alert(error.message); else alert("Conta criada!");
+}
+async function logout() {
+  await supabase.auth.signOut();
+  document.getElementById("username").innerText = "Convidado";
+  document.getElementById("logoutBtn").style.display = "none";
+}
+function updateUser(user) {
+  if (!user) return;
+  document.getElementById("username").innerText = user.email;
+  document.getElementById("logoutBtn").style.display = "inline-block";
+}
 
-  if (!email || !password) return;
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
+// ================= COMENTÁRIOS =================
+async function addComment() {
+  const text = document.getElementById("commentBox").value;
+  const user = (await supabase.auth.getUser()).data.user;
+  if (!text) return;
+  await supabase.from("comments").insert({
+    page_id: "pagina_atual",
+    user_id: user?.id || null,
+    body: text,
+    author_name: user?.email || "Anônimo"
   });
+  document.getElementById("commentBox").value = "";
+  loadComments();
+}
+async function loadComments() {
+  const { data } = await supabase.from("comments").select("*").eq("page_id", "pagina_atual").order("created_at", { ascending: false });
+  const list = document.getElementById("commentList");
+  list.innerHTML = data.map(c => `<p><b>${c.author_name}:</b> ${c.body}</p>`).join("");
+}
+loadComments();
 
+// ================= PROGRESSO =================
+async function saveProgress() {
+  const user = (await supabase.auth.getUser()).data.user;
+  if (!user) return alert("Faça login!");
+  await supabase.from("progress").upsert({ user_id: user.id, page_id: "pagina_atual" });
+  alert("Progresso salvo!");
+}
+function prevPage() { alert("Voltar página (ainda não implementado)"); }
+function nextPage() { alert("Avançar página (ainda não implementado)"); }
+
+// ================= COMUNIDADE / FANARTS =================
+async function submitPost() {
+  const user = (await supabase.auth.getUser()).data.user;
+  if (!user) return alert("Você precisa estar logado!");
+  const title = document.getElementById("postTitle").value;
+  const content = document.getElementById("postContent").value;
+  const image_url = document.getElementById("postImage").value;
+
+  const { error } = await supabase.from("posts").insert([{ user_id: user.id, title, content, image_url }]);
   if (error) {
-    alert("Erro ao cadastrar: " + error.message);
+    alert("Erro ao publicar: " + error.message);
+  } else {
+    alert("Post publicado!");
+    document.getElementById("postTitle").value = "";
+    document.getElementById("postContent").value = "";
+    document.getElementById("postImage").value = "";
+    loadPosts();
+  }
+}
+async function loadPosts() {
+  const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
+  const container = document.getElementById("communityPosts");
+  if (error) {
+    container.innerHTML = "Erro ao carregar posts.";
     return;
   }
-
-  alert("Conta criada! Verifique seu e-mail para confirmar.");
-  user = data.user;
-  updateUIAfterLogin();
+  container.innerHTML = data.map(p => `
+    <div class="post">
+      <h4>${p.title}</h4>
+      ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%;border-radius:6px">` : ""}
+      <p>${p.content ?? ""}</p>
+      <small>${new Date(p.created_at).toLocaleString()}</small>
+    </div>
+  `).join("");
 }
+loadPosts();
 
 // =========================
 // ATUALIZA INTERFACE
