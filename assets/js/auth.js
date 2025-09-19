@@ -1,4 +1,3 @@
-
 // === LOGIN E CADASTRO COM EMAIL + SENHA ===
 
 // Criar conta
@@ -25,8 +24,24 @@ async function signInEmail(email, password) {
     console.error("Erro no login:", error.message)
     alert("Erro no login: " + error.message)
   } else {
-    alert("Login bem-sucedido! Bem-vindo " + email)
-    document.getElementById("headerUser").innerText = email
+    const user = data.user
+
+    // Buscar perfil do usuário
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role, display_name")
+      .eq("id", user.id)
+      .single()
+
+    if (profileError) {
+      console.error("Erro ao buscar perfil:", profileError.message)
+    }
+
+    // Atualizar UI com nome de exibição
+    const displayName = profile?.display_name || user.email
+    document.getElementById("headerUser").innerText = displayName
+
+    alert(`Login bem-sucedido! Bem-vindo ${displayName}`)
   }
 }
 
@@ -37,7 +52,8 @@ async function signOut() {
   document.getElementById("headerUser").innerText = "Convidado"
 }
 
-// Expor pro HTML
+// Expor funções pro HTML
 window.signUpEmail = signUpEmail
 window.signInEmail = signInEmail
 window.signOut = signOut
+
