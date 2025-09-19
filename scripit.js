@@ -8,38 +8,81 @@ let currentPage = 1;
 let user = null; // usuário logado
 
 // =========================
-// AUTENTICAÇÃO
+// LOGIN COM OTP (link mágico)
 // =========================
-async function login() {
-  // Exemplo com Supabase + Email (pode adaptar depois para Google OAuth)
-  const email = prompt("Digite seu e-mail:");
+async function loginWithOTP() {
+  const email = prompt("Digite seu e-mail para receber o link mágico:");
   if (!email) return;
 
-  const { data, error } = await supabase.auth.signInWithOtp({ email });
+  const { error } = await supabase.auth.signInWithOtp({ email });
+  if (error) {
+    alert("Erro ao enviar o link: " + error.message);
+    return;
+  }
+
+  alert("Link enviado! Confira seu e-mail para entrar.");
+}
+
+// =========================
+// LOGIN COM USUÁRIO + SENHA
+// =========================
+async function loginWithPassword() {
+  const email = prompt("Digite seu e-mail:");
+  const password = prompt("Digite sua senha:");
+
+  if (!email || !password) return;
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
   if (error) {
     alert("Erro ao logar: " + error.message);
     return;
   }
 
-  alert("Verifique seu e-mail para entrar!");
+  user = data.user;
+  updateUIAfterLogin();
 }
 
-async function checkUser() {
-  const { data } = await supabase.auth.getUser();
-  if (data?.user) {
-    user = data.user;
+// =========================
+// CADASTRO COM USUÁRIO + SENHA
+// =========================
+async function signUpWithPassword() {
+  const email = prompt("Digite seu e-mail:");
+  const password = prompt("Crie uma senha (mínimo 6 caracteres):");
+
+  if (!email || !password) return;
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    alert("Erro ao cadastrar: " + error.message);
+    return;
+  }
+
+  alert("Conta criada! Verifique seu e-mail para confirmar.");
+  user = data.user;
+  updateUIAfterLogin();
+}
+
+// =========================
+// ATUALIZA INTERFACE
+// =========================
+function updateUIAfterLogin() {
+  if (user) {
     document.getElementById("user-info").innerText = user.email;
     document.getElementById("auth-btn").style.display = "none";
     document.getElementById("logout-btn").style.display = "inline-block";
+  } else {
+    document.getElementById("user-info").innerText = "Usuário";
+    document.getElementById("auth-btn").style.display = "inline-block";
+    document.getElementById("logout-btn").style.display = "none";
   }
-}
-
-async function logout() {
-  await supabase.auth.signOut();
-  user = null;
-  document.getElementById("user-info").innerText = "Usuário";
-  document.getElementById("auth-btn").style.display = "inline-block";
-  document.getElementById("logout-btn").style.display = "none";
 }
 
 // =========================
