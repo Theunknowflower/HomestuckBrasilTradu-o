@@ -1,32 +1,43 @@
 
-// Registrar nova conta
+// === LOGIN E CADASTRO COM EMAIL + SENHA ===
+
+// Criar conta
 async function signUpEmail(email, password) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password
   })
   if (error) {
+    console.error("Erro ao registrar:", error.message)
     alert("Erro ao registrar: " + error.message)
-    console.error(error)
   } else {
-    alert("Conta criada! Confirme o e-mail antes de entrar.")
+    alert("Conta criada! Verifique seu e-mail antes de entrar.")
   }
 }
 
-// Entrar com conta existente
+// Entrar
 async function signInEmail(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
   })
   if (error) {
-    alert("Erro ao entrar: " + error.message)
-    console.error(error)
+    console.error("Erro no login:", error.message)
+    alert("Erro no login: " + error.message)
   } else {
-    alert("Login bem-sucedido!")
+    alert("Login bem-sucedido! Bem-vindo " + email)
+    document.getElementById("headerUser").innerText = email
   }
 }
 
-// Tornar acessível ao HTML
+// Sair
+async function signOut() {
+  await supabase.auth.signOut()
+  alert("Você saiu da conta.")
+  document.getElementById("headerUser").innerText = "Convidado"
+}
+
+// Expor pro HTML
 window.signUpEmail = signUpEmail
 window.signInEmail = signInEmail
+window.signOut = signOut
