@@ -43,23 +43,54 @@
     </div>
   </div>
 
-  <!-- COMMUNITY MODAL -->
-  <div id="communityModal" class="modal">
-    <div class="modal-content">
-      <h2>Comunidade 🎨</h2>
-      <div style="margin-bottom:16px">
-        <h3>Novo Post / Fanart</h3>
-        <input type="text" id="postTitle" placeholder="Título">
-        <textarea id="postContent" placeholder="Descrição (opcional)"></textarea>
-        <input type="url" id="postImage" placeholder="URL da imagem (opcional)">
-        <button onclick="submitPost()">Publicar</button>
-      </div>
-      <hr>
-      <h3>Posts da comunidade</h3>
-      <div id="communityPosts">Carregando posts...</div>
-      <button onclick="closeModal('community')">Fechar</button>
+ <!-- Modal Perfil -->
+<div id="profileModal" class="modal">
+  <div class="modal-content">
+    <h2>Editar Perfil</h2>
+
+    <div style="margin-bottom:12px">
+      <label>Nome de usuário:</label><br>
+      <input type="text" id="profileUsername" placeholder="Digite seu nome" style="width:100%">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Avatar:</label><br>
+      <input type="file" id="profileAvatar" accept="image/*">
+      <div id="avatarPreview" style="margin-top:8px"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-small" onclick="closeModal('profile')">Cancelar</button>
+      <button class="btn-main" onclick="saveProfile()">Salvar</button>
     </div>
   </div>
+</div>
+
+<!-- Modal Comunidade -->
+<div id="communityModal" class="modal">
+  <div class="modal-content">
+    <h2>Comunidade 🎨</h2>
+
+    <!-- Form novo post -->
+    <div style="margin-bottom:16px">
+      <h3>Novo Post / Fanart</h3>
+      <input type="text" id="postTitle" placeholder="Título" style="width:100%;margin-bottom:8px">
+      <textarea id="postContent" placeholder="Descrição (opcional)" style="width:100%;height:80px;margin-bottom:8px"></textarea>
+      <input type="url" id="postImage" placeholder="URL da imagem (opcional)" style="width:100%;margin-bottom:8px">
+      <button class="btn-main" onclick="submitPost()">Publicar</button>
+    </div>
+
+    <hr>
+
+    <!-- Lista de posts -->
+    <h3>Posts da comunidade</h3>
+    <div id="communityPosts">Carregando posts...</div>
+
+    <div style="text-align:right;margin-top:12px">
+      <button class="btn-small" onclick="closeModal('community')">Fechar</button>
+    </div>
+  </div>
+</div>
 
   <!-- Seu script Supabase entra aqui -->
   <script src="supabase.js"></script>
