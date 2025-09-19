@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Header -->
+  <!-- Cabeçalho -->
   <header>
     <h1>HOMESTUCK</h1>
     <h2>TRADUÇÃO DE FÃ</h2>
@@ -24,88 +24,76 @@
 
   <!-- Navegação -->
   <nav>
-    <button class="tab active" onclick="openTab('reader')">LER</button>
-    <button class="tab" onclick="openTab('traducao')">TRADUÇÃO</button>
-    <button class="tab" onclick="openTab('conquistas')">CONQUISTAS</button>
-    <button class="tab" onclick="openTab('data')">DATA</button>
-    <button class="tab" onclick="openTab('comunidade')">COMUNIDADE</button>
+    <button class="tab active" onclick="openTab('reader')"> Ler</button>
+    <button class="tab" onclick="openTab('traducao')"> Tradução</button>
+    <button class="tab" onclick="openTab('conquistas')"> Conquistas</button>
+    <button class="tab" onclick="openTab('indice')"> Índice</button>
+    <button class="tab" onclick="openTab('comunidade')"> Comunidade</button>
   </nav>
 
-  <!-- Conteúdo principal -->
+  <!-- Área principal (abas) -->
   <main>
     <!-- Leitor -->
-    <section id="reader" class="card panel" style="display:block">
-      <img src="assets/page1.png" alt="Página Homestuck" id="pageImg">
-      <div class="controls">
-        <button onclick="saveProgress()">💾 Salvar</button>
-        <button onclick="prevPage()">◀ Anterior</button>
-        <button onclick="nextPage()">Próxima ▶</button>
+    <section id="reader" class="panel" style="display:block">
+      <div class="card">
+        <img src="assets/page1.png" alt="Página Homestuck" id="pageImg">
+        <div class="controls">
+          <button onclick="saveProgress()">💾 Salvar</button>
+          <button onclick="prevPage()">◀ Anterior</button>
+          <button onclick="nextPage()">Próxima ▶</button>
+        </div>
       </div>
     </section>
 
     <!-- Tradução -->
-    <section id="traducao" class="card panel">
-      <h3>Informações da Tradução</h3>
-      <p><b>Equipe:</b> Rafa + Comunidade</p>
-      <p><b>Status:</b> Ato 1 — em progresso</p>
-      <p><b>Licença:</b> Trabalho de fã, sem fins lucrativos.</p>
+    <section id="traducao" class="panel">
+      <div class="card">
+        <h3>Informações da Tradução</h3>
+        <p><b>Equipe:</b> Rafa + Comunidade</p>
+        <p><b>Status:</b> Ato 1 — em progresso</p>
+        <p><b>Licença:</b> Trabalho de fã, sem fins lucrativos.</p>
+      </div>
     </section>
 
     <!-- Conquistas -->
-    <section id="conquistas" class="card panel">
-      <h3>Conquistas</h3>
-      <div id="achievementsList"></div>
+    <section id="conquistas" class="panel">
+      <div class="card">
+        <h3>Suas Conquistas</h3>
+        <div id="achievementsList">Nenhuma ainda 😢</div>
+      </div>
     </section>
 
-    <!-- Data -->
-    <section id="data" class="card panel">
-      <h3>Índice de páginas</h3>
-      <div id="pageIndex"></div>
+    <!-- Índice -->
+    <section id="indice" class="panel">
+      <div class="card">
+        <h3>Índice de Páginas</h3>
+        <div id="pageIndex">Carregando índice...</div>
+      </div>
     </section>
 
     <!-- Comunidade -->
-    <section id="comunidade" class="card panel">
-      <h3>Fanarts & Fórum </h3>
-      <div id="communityForm">
-        <input type="text" id="postTitle" placeholder="Título" style="width:100%;margin-bottom:8px">
-        <textarea id="postContent" placeholder="Descrição (opcional)" style="width:100%;height:60px;margin-bottom:8px"></textarea>
-        <input type="url" id="postImage" placeholder="URL da imagem (opcional)" style="width:100%;margin-bottom:8px">
-        <button class="btn-main" onclick="submitPost()">Publicar</button>
+    <section id="comunidade" class="panel">
+      <div class="card">
+        <h3>Fanarts & Fórum </h3>
+        <div id="communityForm">
+          <input type="text" id="postTitle" placeholder="Título" style="width:100%;margin-bottom:8px">
+          <textarea id="postContent" placeholder="Descrição (opcional)" style="width:100%;height:60px;margin-bottom:8px"></textarea>
+          <input type="url" id="postImage" placeholder="URL da imagem (opcional)" style="width:100%;margin-bottom:8px">
+          <button class="btn-main" onclick="submitPost()">Publicar</button>
+        </div>
+        <hr>
+        <div id="communityPosts">Carregando posts...</div>
       </div>
-      <hr>
-      <div id="communityPosts">Carregando posts...</div>
     </section>
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="info-box">
-        <h3>Informações do Projeto</h3>
-        <p><b>Equipe:</b> Rafa + Comunidade</p>
-        <p><b>Status:</b> Ato 1</p>
-        <p><b>Domínio:</b> em breve</p>
-      </div>
-      <div class="info-box">
-        <h3>Conquistas salvas</h3>
-        <div id="savedAchievements">Nenhuma ainda</div>
-      </div>
-    </aside>
   </main>
-
-  <!-- Comentários -->
-  <section class="comments card">
-    <h3>Comentários</h3>
-    <textarea id="commentBox" placeholder="Escreva seu comentário..."></textarea>
-    <button onclick="addComment()">Enviar</button>
-    <div id="commentList"></div>
-  </section>
 
   <!-- Modal de Login -->
   <div id="loginModal" class="modal">
     <div class="modal-content">
       <h2>Login</h2>
-      <button onclick="loginWithOTP()"> Link Mágico (e-mail)</button>
+      <button onclick="loginWithOTP()">  Link Mágico (e-mail)</button>
       <button onclick="loginWithPassword()"> Usuário e Senha</button>
-      <button onclick="signUpWithPassword()"> Criar Conta</button>
+      <button onclick="signUpWithPassword()">  Criar Conta</button>
       <br>
       <button onclick="closeModal('login')">Fechar</button>
     </div>
@@ -116,5 +104,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
-
