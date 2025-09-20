@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Union Homestuck Brasil</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Union Homestuck Brasil</h1>
+    <button id="loginBtn">Entrar com Discord</button>
+    <button id="logoutBtn" style="display:none;">Sair</button>
+  </header>
+
+  <main>
+    <section id="forumPanel">
+      <h2>Fórum</h2>
+      <button id="newPostBtn">Novo Post</button>
+      <div id="postsContainer"></div>
+    </section>
+
+    <!-- Modal Perfil -->
+    <div id="profilePanel" class="modal hidden">
+      <div class="modal-content">
+        <span id="closeProfile" class="close">&times;</span>
+        <img id="profileBanner" src="" alt="Banner">
+        <img id="profileAvatar" src="" alt="Avatar" class="avatar">
+        <h3 id="profileName"></h3>
+        <button id="addFriendBtn">Adicionar Amigo</button>
+        <button id="friendsBtn">Amigos</button>
+        <button id="reportBtn">Denunciar</button>
+      </div>
+    </div>
+
+    <!-- Modal Admin -->
+    <div id="adminPanel" class="modal hidden">
+      <div class="modal-content">
+        <span id="closeAdmin" class="close">&times;</span>
+        <h3>Painel do Admin</h3>
+        <label>Cor de Fundo: <input type="color" id="bgColorInput"></label>
+        <label>Imagem de Fundo (URL): <input type="text" id="bgImageInput"></label>
+        <label>Cor da Topbar: <input type="color" id="topbarColorInput"></label>
+        <button id="saveSettingsBtn">Salvar</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
